@@ -265,8 +265,8 @@ SELECT
 FROM sqlite_master 
 WHERE type = 'index' 
   AND name NOT LIKE 'sqlite_%'
-  AND tbl IN ('nodes', 'node_hierarchy', 'node_references', 'node_stats', 'imports')
-ORDER BY tbl, name;
+  AND tbl_name IN ('nodes', 'node_hierarchy', 'node_references', 'node_stats', 'imports')
+ORDER BY tbl_name, name;
 
 -- Check database size and statistics
 SELECT 

@@ -264,11 +264,11 @@ export const INDEX_MAINTENANCE = {
   
   // Check index usage statistics
   indexUsage: `
-    SELECT name, tbl, sql 
+    SELECT name, tbl_name, sql 
     FROM sqlite_master 
     WHERE type = 'index' 
     AND name NOT LIKE 'sqlite_%'
-    ORDER BY tbl, name;
+    ORDER BY tbl_name, name;
   `,
   
   // Find unused indexes (requires query plan analysis)
@@ -306,7 +306,7 @@ export const PERFORMANCE_RECOMMENDATIONS = {
 
 // Export consolidated index management
 export function createAllIndexes(): string[] {
-  return INDEX_CREATION_ORDER
+  return [...INDEX_CREATION_ORDER]
 }
 
 export function getIndexMaintenanceQueries(): string[] {
@@ -316,4 +316,4 @@ export function getIndexMaintenanceQueries(): string[] {
 }
 
 // Export index categories and combined structures
-export { ALL_INDEXES, INDEX_CREATION_ORDER }
+export { INDEX_CREATION_ORDER }

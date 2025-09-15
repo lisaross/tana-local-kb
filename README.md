@@ -51,14 +51,60 @@ bun run dev:all
 
 ## 🛠 Tech Stack
 
-We chose the fastest, most modern tools:
+We chose the fastest, most modern tools for optimal performance and privacy:
 
-- **🔥 Bun**: 4x faster than Node.js for everything
-- **⚛️ React + TypeScript**: Solid, type-safe frontend
+- **🔥 Bun**: 4x faster than Node.js - powers backend, builds, and native SQLite
+- **⚛️ React + TypeScript**: Solid, type-safe frontend with TanStack Router/Query
 - **🚀 Hono + tRPC**: Lightning-fast APIs with end-to-end type safety
-- **🤖 Ollama**: Local AI models (Llama 3.2 3B)
-- **📊 ChromaDB**: Vector database for semantic search
-- **💎 SQLite**: Bun's native database for relationships
+- **🤖 Ollama**: Local AI models (Llama 3.2 3B for chat, nomic-embed-text for embeddings)
+- **📊 ChromaDB**: Vector database for semantic similarity search
+- **💎 SQLite**: Graph database for structured relationships and metadata
+
+## 🏗️ Architecture Overview
+
+### Hybrid Database Design
+
+The system uses a **dual-database architecture** that combines the strengths of both structured and semantic search:
+
+```
+📄 Tana Export (JSON)
+         ↓
+🔄 Streaming Parser (Memory-efficient processing)
+         ↓
+    ┌─────────────────┬─────────────────┐
+    ↓                 ↓                 ↓
+💎 SQLite            📝 Content         🤖 Ollama
+(Structure)          Extraction        (Embeddings)
+                                          ↓
+• Node metadata                      📊 ChromaDB
+• Hierarchies                        (Vectors)
+• References
+• Full-text search
+```
+
+### Why Two Databases?
+
+**SQLite (Structure & Metadata)**:
+- Stores node relationships, hierarchies, and metadata
+- Handles exact keyword searches with FTS5
+- Manages graph traversal and relationship queries
+- Maintains data integrity with foreign keys
+
+**ChromaDB (Semantic Understanding)**:
+- Stores vector embeddings of node content
+- Enables similarity-based "conceptual" search
+- Powers AI chat with relevant context retrieval
+- Finds connections you might not have noticed
+
+### Hybrid Search System
+
+When you search, the system combines three approaches:
+
+1. **🎯 Semantic Search** (ChromaDB): "Show me thoughts about productivity"
+2. **🔍 Keyword Search** (SQLite): "Find nodes containing 'kanban'"  
+3. **🕸️ Graph Traversal** (SQLite): "Explore connected ideas"
+
+Results are merged and ranked for optimal relevance.
 
 ## 📋 Prerequisites
 
@@ -93,13 +139,17 @@ uv pip install chromadb fastapi uvicorn
 
 ```bash
 # Start Ollama and download models
-ollama pull llama3.2:3b
-ollama pull nomic-embed-text
+ollama pull llama3.2:3b        # Chat model for conversations
+ollama pull nomic-embed-text    # Embedding model for semantic search
 
 # Start ChromaDB (choose one)
-docker run -p 8000:8000 chromadb/chroma
-# OR: uv run chroma run --path ./data/chroma
+docker run -p 8000:8000 chromadb/chroma          # Vector database (port 8000)
+# OR: uv run chroma run --path ./data/chroma      # Python alternative
 ```
+
+**What's running:**
+- **Ollama** (port 11434): Local AI models for chat and embedding generation
+- **ChromaDB** (port 8000): Vector database storing semantic embeddings
 
 ### 3. Test Parser with Your Data
 
@@ -126,10 +176,16 @@ Note: Full import system with database integration coming in Phase 2!
 bun run dev:all
 
 # Or start services individually:
-# bun run server    # Backend API
-# bun run dev       # Frontend
-# bun run chroma    # ChromaDB service
+# bun run server    # Hono backend API (port 3001)
+# bun run dev       # React frontend (port 5173) 
+# bun run chroma    # ChromaDB Python service (port 8000)
 ```
+
+**Full service stack:**
+- **Frontend** (port 5173): React UI with command palette and chat interface
+- **Backend** (port 3001): Hono API server with tRPC endpoints and SQLite database
+- **ChromaDB** (port 8000): Vector database for semantic search
+- **Ollama** (port 11434): Local AI models for chat and embeddings
 
 ### 5. Explore the Parser! 🎉
 
