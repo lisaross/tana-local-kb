@@ -15,11 +15,10 @@ registry = "https://registry.npmjs.org"
 
 [run]
 # Configure bun run behavior
-shell = "zsh"
+shell = "system"
 
 [test]
 # Test configuration
-preload = []
 coverage = true
 timeout = 30000
 
