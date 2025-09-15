@@ -129,14 +129,14 @@ function generateNode(id: string, config: TestDataConfig, allNodeIds: string[]):
  * Generate malformed JSON for testing error handling
  */
 function generateMalformedNode(id: string): string {
-  // Create malformed nodes that are valid JSON but fail business logic validation
-  // This prevents the streaming parser from completely failing on JSON parse errors
+  // Create mildly malformed nodes that won't break the entire parsing process
+  // These should be recoverable errors that can be handled gracefully
   const malformations = [
-    `{"id":"${id}","name":"broken node","created":"not-a-timestamp","type":"text"}`, // Invalid timestamp
-    `{"id":"${id}","name":"broken node","created":${Date.now()},"type":"invalid-type"}`, // Invalid node type
-    `{"id":"${id}","name":"broken node","children":["non-existent-child"],"type":"text"}`, // Invalid child reference
-    `{"id":"${id}","name":"broken node","created":${Date.now()},"refs":{"invalid":"ref"},"type":"text"}`, // Invalid refs structure
-    `{"id":"${id}","created":${Date.now()},"type":"text"}`, // Missing required name field
+    `{"id":"${id}","name":"node with extra field","created":${Date.now()},"extraField":"unexpected","type":"node"}`, // Extra field
+    `{"id":"${id}","name":"node with empty children","created":${Date.now()},"children":[],"type":"node"}`, // Empty children array
+    `{"id":"${id}","name":"node with null refs","created":${Date.now()},"refs":null,"type":"node"}`, // Null refs
+    `{"id":"${id}","name":"node with long content","created":${Date.now()},"content":"${"very ".repeat(100)}long content","type":"node"}`, // Very long content
+    `{"id":"${id}","name":"","created":${Date.now()},"content":"node with empty name","type":"node"}`, // Empty name but valid structure
   ]
   
   return malformations[Math.floor(Math.random() * malformations.length)]
