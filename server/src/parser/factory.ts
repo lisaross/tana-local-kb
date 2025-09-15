@@ -3,6 +3,7 @@
  */
 
 import { StreamParser } from './stream-parser'
+import { RawTanaNode, ParseProgress } from './types'
 import { createConsoleReporter } from './utils/progress'
 
 /**
@@ -64,7 +65,7 @@ export function createDebugParser(): StreamParser {
 export function createFilteredParser(options: {
   includeTypes?: string[]
   excludeTypes?: string[]
-  customFilter?: (node: any) => boolean
+  customFilter?: (node: RawTanaNode) => boolean
   memoryLimit?: number
 }): StreamParser {
   const {
@@ -74,7 +75,7 @@ export function createFilteredParser(options: {
     memoryLimit = 100
   } = options
   
-  const nodeFilter = (node: any) => {
+  const nodeFilter = (node: RawTanaNode) => {
     // Apply type inclusion filter
     if (includeTypes && includeTypes.length > 0) {
       if (!includeTypes.includes(node.type || node.docType || 'node')) {
@@ -117,7 +118,7 @@ export function createFilteredParser(options: {
 export function createProductionParser(options: {
   memoryLimit?: number
   maxErrors?: number
-  progressCallback?: (progress: any) => void
+  progressCallback?: (progress: ParseProgress) => void
   errorCallback?: (error: Error) => void
 }): StreamParser {
   const {

@@ -2,8 +2,8 @@
  * Types specific to streaming JSON parsing
  */
 
-import { Transform } from 'stream'
-import { RawTanaNode, TanaNode } from './index'
+import type { Transform, TransformCallback } from 'stream'
+import type { RawTanaNode, TanaNode, ParseProgress, ParseResult } from './index'
 
 // Stream parser state
 export interface StreamParserState {
@@ -21,16 +21,16 @@ export interface StreamParserState {
 export interface StreamEvents {
   'node': (node: TanaNode) => void
   'batch': (nodes: TanaNode[]) => void
-  'progress': (progress: any) => void
+  'progress': (progress: ParseProgress) => void
   'error': (error: Error) => void
-  'complete': (result: any) => void
+  'complete': (result: ParseResult) => void
   'memory-warning': (usage: number, limit: number) => void
 }
 
 // Transform stream for processing nodes
 export interface NodeTransformStream extends Transform {
-  _transform(chunk: any, encoding: string, callback: Function): void
-  _flush(callback: Function): void
+  _transform(chunk: unknown, encoding: BufferEncoding, callback: TransformCallback): void
+  _flush(callback: TransformCallback): void
 }
 
 // Streaming parser options (extends base parser options)

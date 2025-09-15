@@ -79,6 +79,13 @@ export interface ParserOptions {
   nodeFilter?: (node: RawTanaNode) => boolean
 }
 
+// Batcher interface for memory-aware batching
+export interface MemoryAwareBatcher<T> {
+  add: (item: T) => Promise<void>
+  flush: () => Promise<void>
+  getCurrentBatch: () => T[]
+}
+
 // Default parser options
 export const DEFAULT_PARSER_OPTIONS: ParserOptions = {
   skipSystemNodes: true,

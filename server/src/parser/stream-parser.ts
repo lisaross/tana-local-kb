@@ -12,7 +12,8 @@ import {
   DEFAULT_PARSER_OPTIONS, 
   ParseResult, 
   ParseError,
-  MemoryLimitError
+  MemoryLimitError,
+  MemoryAwareBatcher
 } from './types'
 import { isSystemNode } from './filters/system-node-filter'
 import { 
@@ -233,7 +234,7 @@ export class StreamParser extends EventEmitter {
    */
   private async processBuffer(
     buffer: string, 
-    batcher: any,
+    batcher: MemoryAwareBatcher<TanaNode>,
     _isEnd: boolean = false
   ): Promise<void> {
     let braceDepth = 0
@@ -305,7 +306,7 @@ export class StreamParser extends EventEmitter {
   /**
    * Process a single raw node
    */
-  private async processNode(rawNode: RawTanaNode, batcher: any): Promise<void> {
+  private async processNode(rawNode: RawTanaNode, batcher: MemoryAwareBatcher<TanaNode>): Promise<void> {
     try {
       // Update memory peak
       this.statistics.memoryPeak = Math.max(this.statistics.memoryPeak, getMemoryUsage())
@@ -404,7 +405,7 @@ export async function parseFile(filePath: string, options?: Partial<ParserOption
 export async function parseFileWithProgress(filePath: string, options?: Partial<ParserOptions>): Promise<ParseResult> {
   const parser = new StreamParser({
     ...options,
-    progressCallback: createConsoleReporter()
+    progressCallback: options?.progressCallback ?? createConsoleReporter()
   })
   
   parser.on('node', (_node: TanaNode) => {

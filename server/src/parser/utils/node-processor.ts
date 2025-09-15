@@ -20,7 +20,10 @@ export function processRawNode(rawNode: RawTanaNode, options: {
   // Extract and normalize basic properties
   const id = rawNode.id || ''
   const name = rawNode.name || ''
-  const created = new Date(rawNode.created * 1000) // Convert Unix timestamp to Date
+  // Handle both seconds and milliseconds timestamps
+  const createdInput = Number(rawNode.created) || 0
+  const createdMs = createdInput > 1e12 ? createdInput : createdInput * 1000
+  const created = new Date(createdMs)
   const docType = rawNode.docType || null
   const ownerId = rawNode.ownerId || null
   const children = rawNode.children || []
