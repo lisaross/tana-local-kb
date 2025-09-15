@@ -654,7 +654,9 @@ export class SearchOperations {
     query: string,
     options: AdvancedSearchOptions
   ): Promise<SearchResult[]> {
-    const searchQuery = `"${query}" OR ${query.split(' ').join(' OR ')}`
+    // Sanitize FTS query to prevent injection
+    const sanitizedQuery = query.replace(/["'\\]/g, '').trim()
+    const searchQuery = `"${sanitizedQuery}" OR ${sanitizedQuery.split(' ').map(term => `"${term}"`).join(' OR ')}`
     
     const results = this.db.query<SearchResult>(`
       SELECT 
