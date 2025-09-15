@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-09-15T19:15:38.455Z",
+  "duration": 38,
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "categories": {
+      "unit": 1,
+      "integration": 0,
+      "performance": 0,
+      "benchmarks": 0
+    }
+  },
+  "performance": {
+    "averageDuration": 37,
+    "maxMemoryPeak": 0.2203502655029297,
+    "averageMemory": 0.2203502655029297
+  },
+  "results": [
+    {
+      "suite": "Connection Management Tests",
+      "category": "unit",
+      "passed": false,
+      "duration": 37,
+      "memoryPeak": 0.2203502655029297,
+      "memoryIncrease": 1.8318967819213867,
+      "output": "bun test v1.2.22 (6bafe260)\nUnknown database preset: test, falling back to development\n\ntests/database/config/connection.test.ts:\n164 |  * Get configuration for a specific environment\n165 |  */\n166 | export function getConfigPreset(environment: keyof typeof CONFIG_PRESETS): Partial<DatabaseConfig> {\n167 |   const preset = CONFIG_PRESETS[environment]\n168 |   if (!preset) {\n169 |     throw new Error(`Unknown configuration preset: ${environment}`)\n                ^\nerror: Unknown configuration preset: test\n      at getConfigPreset (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/settings.ts:169:11)\n      at mergeConfig (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/settings.ts:181:22)\n      at getDatabaseConfig (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/environment.ts:130:12)\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:37:22)\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:36:65)\n(fail) Database Connection Management > Connection Creation > should create connection with default configuration [0.44ms]\n253 |         // Expected to throw\n254 |       }\n255 | \n256 |       // Verify data was rolled back\n257 |       const rows = connection!.query('SELECT COUNT(*) as count FROM transaction_test')\n258 |       expect(rows[0].count).toBe(0)\n                                  ^\nerror: expect(received).toBe(expected)\n\nExpected: 0\nReceived: 1\n\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:258:29)\n(fail) Database Connection Management > Transaction Management > should rollback failed transactions [0.24ms]\n423 |       // Basic performance expectation\n424 |       expect(duration).toBeLessThan(1000) // Should complete in under 1 second\n425 | \n426 |       if (connection!.getMetrics) {\n427 |         const metrics = connection!.getMetrics()\n428 |         expect(metrics.totalQueries).toBe(100)\n                                           ^\nerror: expect(received).toBe(expected)\n\nExpected: 100\nReceived: 101\n\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:428:38)\n(fail) Database Connection Management > Performance Monitoring > should track query execution times [0.56ms]\n496 | \n497 |   describe('Configuration Validation', () => {\n498 |     test('should validate required configuration fields', async () => {\n499 |       const invalidConfig = {} as DatabaseConfig\n500 | \n501 |       await expect(createConnection(invalidConfig)).rejects.toThrow()\n                                                                  ^\nerror: \n\nExpected promise that rejects\nReceived promise that resolved: Promise { <resolved> }\n\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:501:61)\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:498:59)\n(fail) Database Connection Management > Configuration Validation > should validate required configuration fields [0.14ms]\nUnknown database preset: test, falling back to development\n164 |  * Get configuration for a specific environment\n165 |  */\n166 | export function getConfigPreset(environment: keyof typeof CONFIG_PRESETS): Partial<DatabaseConfig> {\n167 |   const preset = CONFIG_PRESETS[environment]\n168 |   if (!preset) {\n169 |     throw new Error(`Unknown configuration preset: ${environment}`)\n                                                                        ^\nerror: Unknown configuration preset: test\n      at getConfigPreset (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/settings.ts:169:67)\n      at mergeConfig (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/settings.ts:181:22)\n      at getDatabaseConfig (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/environment.ts:130:12)\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:505:22)\n(fail) Database Connection Management > Configuration Validation > should use sensible defaults for optional fields [0.07ms]\nUnknown database preset: test, falling back to development\n164 |  * Get configuration for a specific environment\n165 |  */\n166 | export function getConfigPreset(environment: keyof typeof CONFIG_PRESETS): Partial<DatabaseConfig> {\n167 |   const preset = CONFIG_PRESETS[environment]\n168 |   if (!preset) {\n169 |     throw new Error(`Unknown configuration preset: ${environment}`)\n                                                                        ^\nerror: Unknown configuration preset: test\n      at getConfigPreset (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/settings.ts:169:67)\n      at mergeConfig (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/settings.ts:181:22)\n      at getDatabaseConfig (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/server/src/database/config/environment.ts:130:12)\n      at <anonymous> (/Users/lisaross/Developer/Worktrees/tana-local-kb/issue-2-feature/tests/database/config/connection.test.ts:516:29)\n(fail) Database Connection Management > Configuration Validation > should merge custom configuration with defaults [0.05ms]\n---------------------------------------------|---------|---------|-------------------\nFile                                         | % Funcs | % Lines | Uncovered Line #s\n---------------------------------------------|---------|---------|-------------------\nAll files                                    |   53.96 |   66.95 |\n server/src/database/config/connection.ts    |   63.64 |   67.64 | 160-163,170,266-273,277-281,303-345,349-364,371-375,416-422\n server/src/database/config/environment.ts   |   46.15 |   34.90 | 54,59,68,79,87,159-174,181-193,200-212,224-246,253-268,276-331,338-361\n server/src/database/config/index.ts         |  100.00 |  100.00 | \n server/src/database/config/settings.ts      |   40.00 |   69.27 | 196-236,262-267,311-322\n server/src/database/types/database-types.ts |   20.00 |   62.96 | 268-269,275-276,282-286\n---------------------------------------------|---------|---------|-------------------\n\n 19 pass\n 6 fail\n 38 expect() calls\nRan 25 tests across 1 file. [27.00ms]\n",
+      "errors": [
+        "169 |     throw new Error(`Unknown configuration preset: ${environment}`)",
+        "169 |     throw new Error(`Unknown configuration preset: ${environment}`)",
+        "169 |     throw new Error(`Unknown configuration preset: ${environment}`)"
+      ],
+      "requirements": {
+        "memoryPassed": true,
+        "durationPassed": true,
+        "coveragePassed": false
+      }
+    }
+  ],
+  "environment": {
+    "node": "v24.3.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "memory": {
+      "rss": 35880960,
+      "heapTotal": 2071552,
+      "heapUsed": 2151937,
+      "external": 1727265,
+      "arrayBuffers": 853424
+    }
+  }
+}
