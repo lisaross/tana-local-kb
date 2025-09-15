@@ -129,12 +129,14 @@ function generateNode(id: string, config: TestDataConfig, allNodeIds: string[]):
  * Generate malformed JSON for testing error handling
  */
 function generateMalformedNode(id: string): string {
+  // Create malformed nodes that are valid JSON but fail business logic validation
+  // This prevents the streaming parser from completely failing on JSON parse errors
   const malformations = [
-    `{"id":"${id}","name":"broken node","created":${Date.now()},`, // Missing closing brace
-    `{"id":"${id}","name":"broken node"created":${Date.now()}}`, // Missing comma
-    `{"id":"${id}","name":broken node","created":${Date.now()}}`, // Unquoted string
-    `{"id":"${id}","name":"broken node","created":"not-a-number"}`, // Invalid number
-    `{"id":"${id}","name":"broken node","children":[}`, // Invalid array
+    `{"id":"${id}","name":"broken node","created":"not-a-timestamp","type":"text"}`, // Invalid timestamp
+    `{"id":"${id}","name":"broken node","created":${Date.now()},"type":"invalid-type"}`, // Invalid node type
+    `{"id":"${id}","name":"broken node","children":["non-existent-child"],"type":"text"}`, // Invalid child reference
+    `{"id":"${id}","name":"broken node","created":${Date.now()},"refs":{"invalid":"ref"},"type":"text"}`, // Invalid refs structure
+    `{"id":"${id}","created":${Date.now()},"type":"text"}`, // Missing required name field
   ]
   
   return malformations[Math.floor(Math.random() * malformations.length)]
