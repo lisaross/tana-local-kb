@@ -4,9 +4,9 @@
 
 Transform your Tana database into a locally-hosted, AI-queryable knowledge system that preserves relationships while enabling semantic search and natural language querying.
 
-**Status:** 🚧 In Development  
+**Status:** 🚧 Foundation Complete - Building Core Features  
 **Repository:** https://github.com/lisaross/tana-local-kb  
-**Stack:** Bun + TypeScript + React + Hono + ChromaDB + Ollama
+**Stack:** Bun + TypeScript + React + Hono + tRPC + ChromaDB + Ollama + SQLite
 
 ## Quick Start (15 Minutes)
 
@@ -40,15 +40,22 @@ ollama pull nomic-embed-text
 docker run -p 8000:8000 chromadb/chroma
 # OR: uv run chroma run --path ./data/chroma
 
-# 6. Start backend server
-bun run server
+# 6. Start all services concurrently (recommended)
+bun run dev:all
+# This starts: backend (3001), frontend (5173), and ChromaDB
 
-# 7. Import your Tana data
-bun run import -- --file ~/Downloads/your-tana-export.json
+# OR start individual services:
+# bun run server    # Backend only  
+# bun run dev       # Frontend only
+# bun run chroma    # ChromaDB only
 
-# 8. Start frontend
-bun run dev
-# Opens at http://localhost:5173
+# 7. Import your Tana data (coming soon)
+# bun run import:replace --file ~/Downloads/your-tana-export.json
+
+# 8. Access the application
+# Frontend: http://localhost:5173
+# Backend API: http://localhost:3001
+# Backend Health: http://localhost:3001/health
 ```
 
 ## Architecture
@@ -137,8 +144,12 @@ tana-local-kb/
 │   ├── import.ts         # Tana JSON import (Bun)
 │   └── chroma_service.py # ChromaDB service (Python)
 ├── data/                 # Local data storage
-│   ├── tana.db          # SQLite database
-│   └── chroma/          # Vector embeddings
+│   ├── imports/
+│   │   ├── inbox/       # Drop new Tana exports here
+│   │   ├── archive/     # Previous exports (auto-dated)
+│   │   └── current.json # Symlink to active export
+│   ├── tana.db          # SQLite database (rebuilt on import)
+│   └── chroma/          # Vector embeddings (rebuilt on import)
 ├── package.json         # Node.js dependencies
 ├── pyproject.toml       # Python dependencies (uv)
 ├── bunfig.toml          # Bun configuration
@@ -159,15 +170,64 @@ bun run dev             # Frontend only
 bun run chroma          # ChromaDB service only
 
 # Data operations
-bun run import          # Import Tana JSON
-bun run embed           # Re-embed all content
-bun run migrate         # Database migrations
+bun run import:auto     # Watch inbox/ for new exports (recommended)
+bun run import:replace  # Manual import, replaces all data
+bun run import:backup   # Create backup before importing
+bun run import:restore  # Restore from previous backup
 
 # Testing and quality
 bun run test            # Run test suite
 bun run type-check      # TypeScript validation
 bun run lint            # ESLint + Prettier
 ```
+
+### My Workflow (Single User)
+
+**Daily Usage:**
+1. Export your Tana workspace as JSON when you want to update
+2. Drop the export file into `data/imports/inbox/`
+3. System auto-imports and archives the previous version
+4. Continue chatting with your updated knowledge base
+
+**Typical Cycle:**
+- Work in Tana for days/weeks
+- Export when you want fresh AI insights
+- Simple drag-and-drop import (no complex merges)
+- Previous data is safely archived with timestamps
+
+### Data Directory Structure
+
+The simplified data organization makes import management transparent:
+
+```
+data/
+├── imports/
+│   ├── inbox/              # 📥 DROP ZONE: Place new Tana exports here
+│   │   └── (waiting for your next export)
+│   ├── archive/            # 📚 AUTO-ARCHIVED: Previous exports with timestamps  
+│   │   ├── 2024-09-15T10-30-00_tana-export.json
+│   │   ├── 2024-09-10T14-22-15_tana-export.json
+│   │   └── 2024-09-08T09-45-30_tana-export.json
+│   └── current.json        # 🔗 SYMLINK: Points to your active export
+├── tana.db                 # 🗄️  SQLite: Rebuilt from current.json on import
+└── chroma/                 # 🧠 Vectors: Rebuilt from current.json on import
+    ├── index/
+    ├── chroma.sqlite3
+    └── embeddings/
+```
+
+**How it works:**
+1. **Drop and go**: Place `my-export.json` in `inbox/`
+2. **Auto-processing**: System detects file, imports, and moves to archive with timestamp
+3. **Safe replacement**: Previous `tana.db` and `chroma/` are rebuilt from new data
+4. **History preserved**: Last 5 exports kept in archive (configurable)
+5. **Easy rollback**: `bun run import:restore` lets you pick any archived export
+
+**Benefits for single-user:**
+- No merge conflicts or incremental complexity
+- Clear audit trail of when you updated your knowledge base
+- Safe experimentation (can always roll back)
+- Zero-config backups
 
 ### Key Features
 
@@ -183,10 +243,11 @@ Combines multiple search strategies for optimal results:
 - Maintains conversation history
 - Provides cited sources for all responses
 
-#### 3. Smart Import System
+#### 3. Simple Full-Replace Import
 - Preserves all Tana relationships and structure
 - Handles circular references gracefully
-- Supports incremental updates
+- Complete data replacement on each import
+- Automatic backup of previous imports
 - Maintains field types and values
 
 #### 4. Interactive UI
@@ -219,10 +280,12 @@ nodeRouter.children({ id: string }) → TanaNode[]
 nodeRouter.references({ id: string }) → TanaNode[]
 
 // Import API
-importRouter.tanaJson({
+importRouter.replace({
   filePath: string,
-  incremental?: boolean
+  backup?: boolean
 }) → ImportResult
+
+importRouter.auto() → ImportResult  // Watch inbox folder
 ```
 
 ### Configuration
@@ -257,9 +320,49 @@ export const config = {
     showGraph: false,
     keyboardShortcuts: true,
     pageSize: 50
+  },
+  // Single-user personal preferences
+  import: {
+    autoImportOnStartup: true,     // Check inbox/ on app startup
+    watchInboxFolder: true,        // Monitor inbox/ for new files
+    archiveRetentionDays: 30,      // Keep archives for 30 days
+    maxArchiveFiles: 5,            // Keep last 5 imports
+    notifyOnImportComplete: true   // Desktop notification when import finishes
+  },
+  personal: {
+    defaultSearchMode: 'hybrid',   // 'semantic' | 'keyword' | 'hybrid'
+    autoOpenChatOnStartup: false,  // Open chat interface immediately
+    preferredLLMModel: 'llama3.2:3b',  // Can switch to different models easily
+    chatContextSize: 8000,         // How much text to include in chat context
+    saveSearchHistory: true,       // Remember your search queries
+    quickActions: [                // Customize toolbar quick actions
+      'search_semantic',
+      'chat_new',
+      'import_auto',
+      'view_recent'
+    ]
   }
 }
 ```
+
+### Why These Preferences Work for Single User
+
+**Auto-Import Benefits:**
+- No need to remember to manually import - just drop files in inbox/
+- Startup check catches any exports you added while the app was closed
+- Desktop notifications let you know when processing is complete
+
+**Personal Customization:**
+- Skip user authentication/management entirely
+- Save your preferred search strategies and chat settings
+- Customize the UI for YOUR workflow (no need to accommodate multiple users)
+- Direct file system access (no upload size limits or cloud restrictions)
+
+**Simplified Workflow:**
+- Single config file (no complex multi-tenant settings)
+- Personal keyboard shortcuts can be more aggressive/opinionated  
+- Quick actions tuned to how YOU use the system most often
+- Archive management that matches your actual usage patterns
 
 ## Performance Targets
 
@@ -272,8 +375,15 @@ export const config = {
 
 ## Development Phases
 
-### Phase 1: Foundation (Week 1)
+### Phase 1: Foundation (Week 1) - IN PROGRESS
 - [x] Repository setup and basic structure
+- [x] Package.json with all dependencies configured
+- [x] Basic Hono server with health check endpoint  
+- [x] Vite configuration with proxy setup
+- [x] TypeScript configuration for client and server
+- [x] Directory structure: client/, server/, scripts/, data/
+- [x] Development scripts setup (dev:all, server, dev, chroma)
+- [ ] **NEXT:** tRPC setup and basic API routes
 - [ ] Tana JSON parser and import system
 - [ ] SQLite schema and basic queries  
 - [ ] ChromaDB integration with embeddings
