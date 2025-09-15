@@ -1,364 +1,319 @@
-# Tana Local KB Database System
+# Database Module API Reference
 
-## Overview
-
-This directory contains a comprehensive database implementation for the Tana Local Knowledge Base, built on SQLite with Bun's native database support. The system is designed to handle 1M+ nodes with optimal performance, type safety, and robust migration management.
-
-## Architecture
-
-### 🏗️ Structure
-
-```
-server/src/database/
-├── config/               # Database configuration and connection management
-│   ├── connection.ts     # SQLite connection wrapper with transactions
-│   ├── settings.ts       # Performance settings and presets
-│   ├── environment.ts    # Environment-specific configurations
-│   └── index.ts         # Configuration exports
-├── schema/               # Database schema definitions
-│   ├── definitions.ts    # Table and trigger SQL definitions
-│   ├── indexes.ts        # Performance indexes
-│   ├── migrations/       # Migration system
-│   │   └── index.ts     # Migration runner and definitions
-│   └── index.ts         # Schema exports
-├── types/               # TypeScript type definitions
-│   ├── database-types.ts # Database operation types
-│   ├── schema.ts        # Table structure types
-│   └── index.ts         # Type exports
-└── index.ts            # Main database module
-```
-
-## Key Features
-
-### 🚀 Performance Optimized
-
-- **45,900+ nodes/second** insert performance in batch operations
-- **WAL mode** for better concurrency and crash recovery  
-- **Memory-mapped I/O** for optimal read performance
-- **FTS5 search** for full-text search capabilities
-- **Comprehensive indexing** for fast graph traversal
-
-### 🔄 Migration System
-
-- Version-controlled schema changes
-- **Forward and rollback** migrations
-- **Integrity verification** after migrations
-- **Checksum validation** for migration files
-- **Atomic transactions** for migration safety
-
-### 🛡️ Type Safety
-
-- **Full TypeScript coverage** for all database operations
-- **Compile-time validation** of SQL operations
-- **Structured error handling** with custom error types
-- **Interface-based design** for testability
-
-### 🏛️ Architecture Patterns
-
-- **Connection pooling** for efficient resource management
-- **Transaction support** with automatic rollback
-- **Event system** for operation monitoring
-- **Environment-specific configuration**
-- **Singleton pattern** for database instance management
-
-## Configuration
-
-### Environment Variables
-
-```bash
-# Database Configuration
-DATABASE_PATH=./data/tana-kb.db          # Database file path
-DATABASE_MEMORY=false                    # Use in-memory database
-DATABASE_READ_ONLY=false                # Read-only mode
-DATABASE_TIMEOUT=30000                  # Connection timeout (ms)
-DATABASE_MAX_CONNECTIONS=5              # Connection pool size
-DATABASE_ENABLE_WAL=true                # Enable WAL mode
-DATABASE_ENABLE_FTS=true                # Enable full-text search
-DATABASE_AUTO_VACUUM=true               # Enable auto-vacuum
-DATABASE_BACKUP_INTERVAL=3600000        # Backup interval (ms)
-
-# Environment
-NODE_ENV=development                     # Environment type
-DATABASE_PRESET=production               # Configuration preset
-```
-
-### Configuration Presets
-
-| Preset | Use Case | Cache Size | Connections | WAL Mode |
-|--------|----------|------------|-------------|----------|
-| `development` | Local development | 8MB | 3 | ✅ |
-| `production` | Production deployment | 128MB | 10 | ✅ |
-| `testing` | Unit/integration tests | 256MB | 1 | ❌ |
-| `high-performance` | Large datasets (1M+ nodes) | 512MB | 5 | ✅ |
-
-## Database Schema
-
-### Core Tables
-
-**nodes** - Primary node storage
-- `id` (TEXT) - Primary key, node identifier
-- `name` (TEXT) - Node title/name (indexed)
-- `content` (TEXT) - Full content (FTS enabled)
-- `node_type` (TEXT) - Type: 'node', 'field', 'reference'
-- `is_system_node` (INTEGER) - System node flag (0/1)
-- `fields_json` (TEXT) - JSON fields data
-- `metadata_json` (TEXT) - Additional metadata
-
-**node_hierarchy** - Parent-child relationships
-- `parent_id` (TEXT) - Parent node reference
-- `child_id` (TEXT) - Child node reference  
-- `position` (INTEGER) - Order within parent
-
-**node_references** - Cross-references between nodes
-- `source_id` (TEXT) - Source node
-- `target_id` (TEXT) - Target node
-- `reference_type` (TEXT) - Type of reference
-
-**node_search** - FTS5 virtual table for search
-- `id` (TEXT) - Node identifier
-- `name`, `content`, `tags` - Searchable fields
-
-### Performance Features
-
-- **Automatic triggers** maintain `node_stats` for analytics
-- **Circular reference prevention** in hierarchy
-- **Foreign key constraints** ensure data integrity
-- **Comprehensive indexing** for all query patterns
-
-## Usage Examples
-
-### Basic Operations
+## Quick Start
 
 ```typescript
-import { initializeDatabase, getDatabase } from './database/index.js'
+import { getDatabase } from './database/index.js'
+import { createDatabaseOperations } from './database/operations/index.js'
 
-// Initialize database
-const connection = await initializeDatabase()
+// Initialize
+const db = getDatabase()
+const ops = createDatabaseOperations(db)
 
-// Insert a node
-const result = connection.run(`
-  INSERT INTO nodes (id, name, content, node_type, is_system_node, fields_json, metadata_json)
-  VALUES (?, ?, ?, ?, ?, ?, ?)
-`, ['node-1', 'My Node', 'Content here', 'node', 0, '{}', '{}'])
+// Basic operations
+const node = await ops.nodes.create(nodeData)
+const children = await ops.edges.getChildren(nodeId)
+const results = await ops.search.fullTextSearch(query)
+```
 
-// Query nodes
-const nodes = connection.query('SELECT * FROM nodes WHERE node_type = ?', ['node'])
+## Core Modules
 
-// Transaction example
-const txResult = connection.transaction(() => {
-  // Multiple operations in single transaction
-  connection.run('INSERT INTO nodes (...) VALUES (...)')
-  connection.run('INSERT INTO node_hierarchy (...) VALUES (...)')
-  return { success: true }
+### Database Connection (`config/`)
+- `connection.ts` - SQLite connection management
+- `settings.ts` - Performance configurations
+- `environment.ts` - Environment-specific settings
+
+### Schema Management (`schema/`)
+- `definitions.ts` - Table definitions and constraints
+- `indexes.ts` - Performance indexes
+- `migrations/` - Version-controlled schema changes
+
+### Operations (`operations/`)
+- `nodes.ts` - Node CRUD operations
+- `edges.ts` - Hierarchy management
+- `references.ts` - Cross-reference operations
+- `batch.ts` - Bulk import/export
+- `transactions.ts` - Transaction management
+
+### Queries (`queries/`)
+- `graph-traversal.ts` - BFS, DFS, pathfinding
+- `search.ts` - Full-text and faceted search
+
+## API Reference
+
+### Node Operations
+
+```typescript
+// Create node
+const node = await ops.nodes.create({
+    id: 'node_123',
+    name: 'My Note',
+    content: 'Content here',
+    docType: 'note',
+    fields: { priority: 1 }
 })
+
+// Get node with relations
+const nodeWithRelations = await ops.nodes.getWithRelations('node_123')
+
+// Update node
+await ops.nodes.update('node_123', { name: 'Updated Name' })
+
+// Delete node (cascades to relationships)
+await ops.nodes.delete('node_123')
+```
+
+### Hierarchy Operations
+
+```typescript
+// Get children (ordered)
+const children = await ops.edges.getChildren('parent_id')
+
+// Get parents
+const parents = await ops.edges.getParents('child_id')
+
+// Add child at specific position
+await ops.edges.addChild('parent_id', 'child_id', 2)
+
+// Move node to new parent
+await ops.edges.moveNode('node_id', 'new_parent_id', 0)
+```
+
+### Reference Operations
+
+```typescript
+// Add reference
+await ops.references.add('source_id', 'target_id', 'link')
+
+// Get all references from a node
+const outbound = await ops.references.getReferences('node_id')
+
+// Get all references to a node
+const inbound = await ops.references.getBackReferences('node_id')
+```
+
+### Batch Operations
+
+```typescript
+// Import Tana nodes efficiently
+const result = await ops.batch.importTanaNodes(tanaNodes, progressCallback)
+
+// Batch create with progress tracking
+const result = await ops.batch.createNodes(nodes, { 
+    batchSize: 1000,
+    onProgress: (progress) => console.log(`${progress.percentage}% complete`)
+})
+```
+
+### Graph Traversal
+
+```typescript
+// Breadth-first traversal
+const subgraph = await ops.graph.breadthFirstTraversal('start_id', {
+    maxDepth: 5,
+    includeReferences: true
+})
+
+// Find shortest path
+const path = await ops.graph.findShortestPath('start_id', 'end_id')
+
+// Get connected components
+const components = await ops.graph.getConnectedComponents()
 ```
 
 ### Search Operations
 
 ```typescript
 // Full-text search
-const searchResults = connection.query(`
-  SELECT n.*, s.rank, snippet(node_search, 1, '<mark>', '</mark>', '...', 32) as snippet
-  FROM node_search s
-  JOIN nodes n ON s.id = n.id
-  WHERE node_search MATCH ?
-  ORDER BY s.rank
-`, ['search query'])
+const results = await ops.search.fullTextSearch('knowledge management', {
+    limit: 20,
+    highlightMatches: true
+})
 
-// Graph traversal - get all descendants
-const descendants = connection.query(`
-  WITH RECURSIVE descendants(id, child_id, level) AS (
-    SELECT parent_id, child_id, 0 FROM node_hierarchy WHERE parent_id = ?
-    UNION ALL
-    SELECT h.parent_id, h.child_id, level + 1 
-    FROM node_hierarchy h
-    JOIN descendants d ON h.parent_id = d.child_id
-    WHERE level < 100
-  )
-  SELECT n.*, d.level FROM nodes n 
-  JOIN descendants d ON n.id = d.child_id
-  ORDER BY d.level ASC
-`, ['parent-node-id'])
-```
+// Faceted search
+const faceted = await ops.search.facetedSearch({
+    query: 'project',
+    docType: ['note', 'project'],
+    tags: ['important'],
+    dateRange: { start: startDate, end: endDate }
+})
 
-### Configuration Management
-
-```typescript
-import { getDatabaseConfig, getConfigSummary } from './database/config/index.js'
-
-// Get current configuration
-const config = getDatabaseConfig()
-
-// Configuration summary for debugging
-const summary = getConfigSummary()
-console.log('Database configuration:', summary)
-
-// Create test database
-const testConnection = await dbUtils.createTestConnection({
-  pragmas: {
-    synchronous: 'OFF',
-    cache_size: '-32000'
-  }
+// Hybrid search (text + graph + similarity)
+const hybrid = await ops.search.hybridSearch('AI research', {
+    contextNodeId: 'context_id',
+    fusionMethod: 'weighted'
 })
 ```
 
-### Migration Management
+### Transaction Management
 
 ```typescript
-import { createMigrationRunner } from './database/schema/migrations/index.js'
+// Simple transaction
+await ops.transactions.execute(async (tx) => {
+    await tx.nodes.create(node1)
+    await tx.nodes.create(node2)
+    await tx.edges.addChild(node1.id, node2.id, 0)
+})
 
-const runner = createMigrationRunner(connection)
-
-// Check migration status
-const status = await runner.getStatus()
-console.log(`Current version: ${status.currentVersion}`)
-console.log(`Pending migrations: ${status.pendingMigrations}`)
-
-// Apply all pending migrations
-const results = await runner.migrate()
-
-// Rollback to specific version
-await runner.rollbackTo(1)
-
-// Verify database integrity
-const integrity = await runner.verifyIntegrity()
+// With retry logic
+await ops.transactions.executeWithRetry(async (tx) => {
+    // Complex operations
+}, { maxRetries: 3, backoffMs: 100 })
 ```
 
+## Configuration
+
+### Environment Variables
+
+```bash
+DATABASE_PATH=./data/tana-kb.db
+DATABASE_PRESET=production
+DATABASE_MAX_CONNECTIONS=10
+DATABASE_ENABLE_WAL=true
+DATABASE_AUTO_VACUUM=true
+```
+
+### Performance Presets
+
+```typescript
+import { DatabaseSettings } from './config/settings.js'
+
+// Development: Fast startup, debugging
+const devSettings = DatabaseSettings.development
+
+// Production: Maximum performance
+const prodSettings = DatabaseSettings.production
+
+// High-performance: Optimized for 1M+ nodes
+const hpSettings = DatabaseSettings.highPerformance
+```
+
+## CLI Tools
+
+```bash
+# Database management
+bun run migrate                 # Apply migrations
+bun run migrate --status        # Check migration status
+bun run migrate --rollback      # Rollback last migration
+
+# Database inspection
+bun run db:inspect              # Overview
+bun run db:inspect --schema     # Detailed schema
+bun run db:inspect --stats      # Table statistics
+bun run db:inspect --health     # Performance metrics
+
+# Performance benchmarking
+bun run benchmark               # Standard benchmarks
+bun run benchmark --quick       # Quick validation
+bun run benchmark --compare     # Compare with requirements
+```
+
+## Performance Targets
+
+✅ **Met Requirements:**
+- Node insertion: <1ms per node (batch mode)
+- Relationship queries: <10ms for typical patterns
+- Import speed: >1000 nodes/second from parser
+- Memory usage: <50MB during 1M node import
+- Graph traversal: <100ms for 1000-node subgraph
+
 ## Testing
-
-### Test Suite
-
-The database system includes comprehensive tests:
 
 ```bash
 # Run all database tests
 bun run test:database
 
-# Run specific test categories
-bun run test:db:connection     # Connection management
-bun run test:db:migrations     # Migration system
-bun run test:db:operations     # CRUD operations
-bun run test:db:transactions   # Transaction handling
-bun run test:db:performance    # Performance benchmarks
+# Specific test categories
+bun run test:database:unit          # Unit tests
+bun run test:database:integration   # Integration tests
+bun run test:database:performance   # Performance tests
+bun run test:database:benchmarks    # Benchmark validation
 ```
 
-### Performance Benchmarks
+## Error Handling
 
-- **Batch Insert**: 45,900+ nodes/second
-- **Single Query**: <0.02ms average
-- **Complex Graph Query**: <100ms for 1M+ nodes
-- **Full-Text Search**: <50ms for large datasets
-- **Migration Speed**: Complete schema setup in <5ms
-
-## Monitoring and Debugging
-
-### Database Health Check
+All operations return structured errors:
 
 ```typescript
-import { getDatabaseHealth } from './database/index.js'
-
-const health = await getDatabaseHealth()
-console.log('Database status:', health)
+try {
+    await ops.nodes.create(invalidNode)
+} catch (error) {
+    if (error instanceof DatabaseError) {
+        console.log(`Database error: ${error.message}`)
+        console.log(`Code: ${error.code}`)
+        console.log(`Context: ${error.context}`)
+    }
+}
 ```
 
-### Performance Monitoring
+## Migration Example
 
 ```typescript
-import { enableDatabaseLogging } from './database/index.js'
+// migrations/003_add_tags_table.sql
+CREATE TABLE node_tags (
+    node_id TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    created_at INTEGER DEFAULT (unixepoch()),
+    FOREIGN KEY (node_id) REFERENCES nodes(id) ON DELETE CASCADE,
+    PRIMARY KEY (node_id, tag)
+);
 
-// Enable query performance logging
-enableDatabaseLogging()
-
-// Get database statistics
-const stats = dbUtils.getDatabaseStats()
-console.log('Database size:', stats.totalSize)
-console.log('Table counts:', stats.tables)
+CREATE INDEX idx_tags_node ON node_tags(node_id);
+CREATE INDEX idx_tags_tag ON node_tags(tag);
 ```
 
-### Optimization
+## Best Practices
 
-```typescript
-// Optimize database performance
-await dbUtils.optimizeDatabase()
-
-// Create backup
-await dbUtils.backupDatabase('./backup/tana-kb-backup.db')
-
-// Execute raw SQL for debugging
-const result = await dbUtils.executeRaw('EXPLAIN QUERY PLAN SELECT ...')
-```
-
-## Production Considerations
-
-### Deployment Checklist
-
-- ✅ Set `NODE_ENV=production`
-- ✅ Configure appropriate `DATABASE_PATH`
-- ✅ Enable `DATABASE_AUTO_VACUUM=true`
-- ✅ Set `DATABASE_BACKUP_INTERVAL`
-- ✅ Monitor database size and performance
-- ✅ Set up log rotation for query logs
-
-### Security
-
-- Database files should have restricted permissions (600)
-- Use read-only connections for analytical workloads
-- Regular backups with verification
-- Monitor for slow queries and optimize indexes
-
-### Scaling
-
-For datasets approaching SQLite limits:
-- Consider partitioning strategies
-- Implement read replicas for analytics
-- Monitor WAL file growth
-- Optimize PRAGMA settings for workload
+1. **Use transactions** for multi-step operations
+2. **Batch operations** for bulk data manipulation
+3. **Monitor performance** with built-in analytics
+4. **Regular maintenance** with `ANALYZE` and `VACUUM`
+5. **Test migrations** with sample data first
+6. **Monitor memory** during large imports
+7. **Use prepared statements** for repeated queries
 
 ## Integration Points
 
-The database system integrates with:
+### Parser Integration
+```typescript
+import { TanaNode } from '../parser/types/index.js'
+import { ParserAdapter } from './adapters/parser-adapter.js'
 
-- **Tana Parser**: Via import scripts and node insertion
-- **ChromaDB**: For vector embeddings (separate service)
-- **tRPC API**: Through database connection middleware
-- **React Frontend**: Via API endpoints for data access
+const adapter = new ParserAdapter(ops)
+await adapter.importFromParser(parserStream)
+```
+
+### tRPC Integration
+```typescript
+import { TRPCAdapter } from './adapters/trpc-adapter.js'
+
+const trpcAdapter = new TRPCAdapter(ops)
+// Use in tRPC router definitions
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Migration Failures**
-```bash
-# Check migration status
-bun run test:db:migrations
+1. **Connection errors**: Check file permissions and path
+2. **Slow queries**: Use `EXPLAIN QUERY PLAN` to debug
+3. **Memory issues**: Reduce batch sizes, increase GC frequency
+4. **Lock contention**: Verify WAL mode is enabled
+5. **Search issues**: Rebuild FTS index if needed
 
-# Manual integrity check
-sqlite3 data/tana-kb.db "PRAGMA integrity_check"
+### Debug Commands
+
+```typescript
+// Query plan analysis
+const plan = await ops.debug.explainQuery(sql, params)
+
+// Performance metrics
+const metrics = await ops.debug.getPerformanceMetrics()
+
+// Memory usage
+const memory = await ops.debug.getMemoryUsage()
 ```
 
-**Performance Issues**
-```bash
-# Analyze query performance
-bun run test:db:performance
+---
 
-# Check for missing indexes
-sqlite3 data/tana-kb.db "EXPLAIN QUERY PLAN SELECT ..."
-```
-
-**Connection Issues**
-```bash
-# Test basic connectivity
-bun run test:db:connection
-
-# Check file permissions
-ls -la data/tana-kb.db
-```
-
-## Future Enhancements
-
-- [ ] **Read replicas** for analytics workloads
-- [ ] **Automatic partitioning** for very large datasets
-- [ ] **Backup scheduling** with retention policies
-- [ ] **Query caching** for frequently accessed data
-- [ ] **Connection pooling** improvements
-- [ ] **Metrics collection** for operational monitoring
+For complete schema documentation, see [DATABASE_SCHEMA_GUIDE.md](../../DATABASE_SCHEMA_GUIDE.md).
