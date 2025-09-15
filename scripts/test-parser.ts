@@ -68,9 +68,10 @@ async function main() {
     }
     
     // Show sample of parsed nodes
-    if (result.nodes.length > 0) {
+    const nodes = result.nodes || []
+    if (nodes.length > 0) {
       console.log('📝 Sample nodes:')
-      result.nodes.slice(0, 3).forEach((node, i) => {
+      nodes.slice(0, 3).forEach((node, i) => {
         console.log(`   ${i + 1}. ${node.name} (${node.id})`)
         console.log(`      Type: ${node.type}, Created: ${node.created.toISOString()}`)
         console.log(`      Children: ${node.children.length}, References: ${node.references.length}`)
@@ -78,8 +79,8 @@ async function main() {
           console.log(`      Content: ${node.content.substring(0, 100)}${node.content.length > 100 ? '...' : ''}`)
         }
       })
-      if (result.nodes.length > 3) {
-        console.log(`   ... and ${result.nodes.length - 3} more nodes`)
+      if (nodes.length > 3) {
+        console.log(`   ... and ${nodes.length - 3} more nodes`)
       }
     }
     

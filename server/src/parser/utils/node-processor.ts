@@ -68,7 +68,7 @@ export function processRawNode(rawNode: RawTanaNode, options: {
     fields,
     type,
     isSystemNode: isSystemNode(rawNode),
-    raw: preserveRawData ? rawNode : {} as RawTanaNode
+    ...(preserveRawData && { raw: rawNode })
   }
   
   return processedNode

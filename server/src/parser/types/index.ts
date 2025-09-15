@@ -33,7 +33,7 @@ export interface TanaNode {
   fields: Record<string, any>
   type: 'node' | 'field' | 'reference'
   isSystemNode: boolean
-  raw: RawTanaNode // Keep original for debugging
+  raw?: RawTanaNode // Keep original for debugging - optional for memory efficiency
 }
 
 // Progress tracking callback
@@ -62,7 +62,7 @@ export interface ParserOptions {
   
   // Progress tracking
   progressCallback?: ProgressCallback
-  progressInterval: number // Report interval in ms (default: 1000)
+  progressInterval: number // Report interval in milliseconds (default: 1000)
   
   // Error handling
   continueOnError: boolean
@@ -126,7 +126,7 @@ export class MemoryLimitError extends ParseError {
 
 // Parse result
 export interface ParseResult {
-  nodes: TanaNode[]
+  nodes?: TanaNode[] // Optional for memory efficiency - use event/callback consumption for large files
   statistics: {
     totalNodes: number
     processedNodes: number

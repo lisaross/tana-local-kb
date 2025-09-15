@@ -53,7 +53,7 @@ export function monitorMemory(
   thresholdMB: number,
   callback: (usage: number) => void,
   intervalMs: number = 1000
-): NodeJS.Timer {
+): NodeJS.Timeout {
   return setInterval(() => {
     const usage = getMemoryUsage()
     if (usage > thresholdMB) {

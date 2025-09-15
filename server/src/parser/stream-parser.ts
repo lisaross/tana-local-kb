@@ -81,11 +81,17 @@ export class StreamParser extends EventEmitter {
         errors: this.errors
       })
       
-      return {
-        nodes,
+      const result: ParseResult = {
         statistics: this.statistics,
         errors: this.errors
       }
+      
+      // Only include nodes if returnNodes option is not false
+      if (this.options.returnNodes !== false) {
+        result.nodes = nodes
+      }
+      
+      return result
       
     } catch (error) {
       const parseError = error instanceof ParseError 
@@ -143,8 +149,12 @@ export class StreamParser extends EventEmitter {
             }
           } else if (char === '}') {
             braceDepth--
-          } else if (char === '[' && buffer.substring(Math.max(0, i - 10), i).includes('"nodes"')) {
-            inNodesArray = true
+          } else if (char === '[') {
+            // Check if this is the start of a nodes array with proper whitespace handling
+            const precedingChars = buffer.substring(Math.max(0, i - 20), i)
+            if (/"\s*nodes\s*"\s*:\s*$/.test(precedingChars)) {
+              inNodesArray = true
+            }
           } else if (char === ']' && inNodesArray && braceDepth === 0) {
             inNodesArray = false
           }
@@ -261,9 +271,12 @@ export class StreamParser extends EventEmitter {
       
       if (inString) continue
       
-      // Check for nodes array start
-      if (char === '[' && buffer.substring(Math.max(0, i - 10), i).includes('"nodes"')) {
-        inNodesArray = true
+      // Check for nodes array start with proper whitespace handling
+      if (char === '[') {
+        const precedingChars = buffer.substring(Math.max(0, i - 20), i)
+        if (/"\s*nodes\s*"\s*:\s*$/.test(precedingChars)) {
+          inNodesArray = true
+        }
         continue
       }
       

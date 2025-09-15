@@ -101,7 +101,7 @@ function generateNode(id: string, config: TestDataConfig, allNodeIds: string[]):
   const node: RawTanaNode = {
     id,
     name,
-    created: Date.now() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000), // Random date within last year
+    created: Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 365 * 24 * 60 * 60), // Random Unix timestamp in seconds within last year
     type: nodeType,
     children: [...new Set(children)], // Remove duplicates
     refs: [...new Set(refs)], // Remove duplicates
@@ -131,12 +131,13 @@ function generateNode(id: string, config: TestDataConfig, allNodeIds: string[]):
 function generateMalformedNode(id: string): string {
   // Create mildly malformed nodes that won't break the entire parsing process
   // These should be recoverable errors that can be handled gracefully
+  const timestamp = Math.floor(Date.now() / 1000) // Unix timestamp in seconds
   const malformations = [
-    `{"id":"${id}","name":"node with extra field","created":${Date.now()},"extraField":"unexpected","type":"node"}`, // Extra field
-    `{"id":"${id}","name":"node with empty children","created":${Date.now()},"children":[],"type":"node"}`, // Empty children array
-    `{"id":"${id}","name":"node with null refs","created":${Date.now()},"refs":null,"type":"node"}`, // Null refs
-    `{"id":"${id}","name":"node with long content","created":${Date.now()},"content":"${"very ".repeat(100)}long content","type":"node"}`, // Very long content
-    `{"id":"${id}","name":"","created":${Date.now()},"content":"node with empty name","type":"node"}`, // Empty name but valid structure
+    `{"id":"${id}","name":"node with extra field","created":${timestamp},"extraField":"unexpected","type":"node"}`, // Extra field
+    `{"id":"${id}","name":"node with empty children","created":${timestamp},"children":[],"type":"node"}`, // Empty children array
+    `{"id":"${id}","name":"node with null refs","created":${timestamp},"refs":null,"type":"node"}`, // Null refs
+    `{"id":"${id}","name":"node with long content","created":${timestamp},"content":"${"very ".repeat(100)}long content","type":"node"}`, // Very long content
+    `{"id":"${id}","name":"","created":${timestamp},"content":"node with empty name","type":"node"}`, // Empty name but valid structure
   ]
   
   return malformations[Math.floor(Math.random() * malformations.length)]

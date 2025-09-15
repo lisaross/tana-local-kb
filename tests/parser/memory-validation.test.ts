@@ -157,7 +157,8 @@ describe('Memory Validation Tests', () => {
     }, 120000) // 2 minute timeout
     
     it('should throw MemoryLimitError when constraint is violated', async () => {
-      const veryLowLimit = 20 // 20MB - should be exceeded
+      const currentMemory = getMemoryUsage()
+      const veryLowLimit = Math.max(1, currentMemory - 10) // Set limit 10MB below current usage
       
       await expect(
         parseFile(MEMORY_TEST_FILES.MEDIUM_MEMORY, {
