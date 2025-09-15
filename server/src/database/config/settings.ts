@@ -158,6 +158,17 @@ export const CONFIG_PRESETS: Record<string, Partial<DatabaseConfig>> = {
     autoVacuum: true,
     backupInterval: 7200000, // 2 hours
   },
+  
+  // Alias for NODE_ENV=test
+  test: {
+    pragmas: MEMORY_PRAGMAS,
+    maxConnections: 1,
+    timeout: 1000,
+    memory: true,
+    enableWAL: false,
+    enableFTS: true,
+    autoVacuum: false,
+  },
 } as const
 
 /**

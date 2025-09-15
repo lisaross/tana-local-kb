@@ -7,8 +7,6 @@
  */
 
 import { beforeEach, afterEach, describe, expect, test } from 'bun:test'
-import { join } from 'node:path'
-import { tmpdir } from 'node:os'
 import { createConnection, getDatabaseConfig } from '../../../server/src/database/config/index.js'
 import type { DatabaseConnection, DatabaseConfig } from '../../../server/src/database/types/database-types.js'
 import { existsSync, unlinkSync } from 'fs'
@@ -355,7 +353,7 @@ describe('Database Connection Management', () => {
     })
 
     test('should handle database file permissions', async () => {
-      const readOnlyPath = join(tmpdir(), 'invalid-readonly-test.db')
+      const readOnlyPath = '/tmp/invalid-readonly-test.db'
       
       const config: DatabaseConfig = {
         path: readOnlyPath,
