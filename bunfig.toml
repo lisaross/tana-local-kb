@@ -1,0 +1,45 @@
+[install]
+# Configure package manager
+cache = false
+exact = false
+dev = true
+optional = true
+peer = true
+
+# Performance optimizations
+parallel = true
+registry = "https://registry.npmjs.org"
+
+[install.scopes]
+# Add any scoped registries here if needed
+
+[run]
+# Configure bun run behavior
+shell = "zsh"
+
+[test]
+# Test configuration
+preload = []
+coverage = true
+timeout = 30000
+
+[build]
+# Build configuration
+target = "bun"
+minify = true
+sourcemap = "external"
+splitting = true
+
+[watch]
+# Watch mode configuration
+exclude = [
+  "node_modules/**",
+  "dist/**",
+  "build/**",
+  "data/**",
+  ".git/**"
+]
+
+[env]
+# Environment variable configuration
+NODE_ENV = "development"
