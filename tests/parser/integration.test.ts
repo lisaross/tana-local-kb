@@ -196,7 +196,9 @@ describe('Parser Integration Tests', () => {
     })
     
     it('should throw MemoryLimitError when limit is exceeded', async () => {
-      const veryLowLimit = 90 // 90MB - should be exceeded given current process memory usage
+      // Compute limit dynamically from current process memory to ensure it triggers
+      const currentMemoryMB = Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+      const veryLowLimit = Math.max(1, currentMemoryMB - 10) // Set limit below current usage
       
       await expect(
         parseFile(TEST_FILES.MEDIUM, {
