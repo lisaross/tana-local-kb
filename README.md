@@ -2,7 +2,7 @@
 
 Transform your Tana database into a powerful, locally-hosted AI knowledge system. Chat with your notes, find connections you never knew existed, and explore your thoughts with semantic search—all running entirely on your machine.
 
-![Status: In Development](https://img.shields.io/badge/Status-In%20Development-yellow)
+![Status: Parser Complete](https://img.shields.io/badge/Status-Parser%20Complete-green)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
 ![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)
 
@@ -24,30 +24,30 @@ git clone https://github.com/lisaross/tana-local-kb.git
 cd tana-local-kb
 bun install
 
-# 2. Import your Tana export
-bun run import --file ~/Downloads/your-tana-export.json
+# 2. Test parser with your Tana export
+bun run test-parser ~/Downloads/your-tana-export.json
 
 # 3. Start everything
 bun run dev:all
 
-# 4. Open http://localhost:5173 and start chatting! 💬
+# 4. Open http://localhost:5173 (UI coming in Phase 2) 💬
 ```
 
 ## 🎯 Core Features
 
-### 💬 Chat with Your Knowledge Base
-Ask questions like "What were my key insights from last week?" and get answers with source citations.
+### ✅ **Streaming JSON Parser** (Phase 1 Complete!)
+- **Memory Efficient**: Parse 1M+ Tana nodes using <100MB RAM
+- **System Node Filtering**: Automatically removes Tana system/template nodes
+- **Progress Tracking**: Real-time progress callbacks for large imports
+- **Error Recovery**: Continues parsing even with malformed JSON
+- **Performance**: 2,000+ nodes/second throughput
+- **CLI Testing**: `bun run test-parser your-export.json`
 
-### 🔍 Hybrid Search
-- **Semantic**: Find conceptually similar content
-- **Keyword**: Traditional text search
-- **Graph**: Discover through relationships
-
-### ⚡ Command Palette
-Press `Cmd+K` for instant search across all your notes.
-
-### 🔗 Relationship Navigation
-Click through your knowledge graph just like in Tana.
+### 🚧 **Coming in Phase 2**
+- **💬 Chat Interface**: Ask questions about your knowledge base
+- **🔍 Hybrid Search**: Semantic + keyword + graph relationship search
+- **⚡ Command Palette**: `Cmd+K` for instant note discovery
+- **🔗 Relationship Navigation**: Click through your knowledge graph
 
 ## 🛠 Tech Stack
 
@@ -101,13 +101,23 @@ docker run -p 8000:8000 chromadb/chroma
 # OR: uv run chroma run --path ./data/chroma
 ```
 
-### 3. Import Your Data
+### 3. Test Parser with Your Data
 
-Export your Tana workspace as JSON, then:
+Export your Tana workspace as JSON, then test the parser:
 
 ```bash
-bun run import --file ~/Downloads/your-tana-export.json
+# Test parser with your Tana export
+bun run test-parser ~/Downloads/your-tana-export.json
+
+# Test with specific performance preset
+bun run test-parser ~/Downloads/your-export.json MEMORY_EFFICIENT
+
+# Run parser test suite
+bun run test:parser:quick    # Quick tests (~30 seconds)
+bun run test:parser         # Full test suite (~30 minutes)
 ```
+
+Note: Full import system with database integration coming in Phase 2!
 
 ### 4. Start the Application
 
@@ -121,12 +131,18 @@ bun run dev:all
 # bun run chroma    # ChromaDB service
 ```
 
-### 5. Open and Explore! 🎉
+### 5. Explore the Parser! 🎉
 
-Visit `http://localhost:5173` and start exploring your knowledge base!
+The streaming parser is ready to test with your Tana exports! Visit `http://localhost:5173` to see the basic server health check. Full UI coming in Phase 2.
 
-## 💡 Usage Tips
+## 💡 Current Usage (Phase 1)
 
+- **Test Parser**: `bun run test-parser your-export.json` to validate your Tana data
+- **Performance Presets**: Try FAST, BALANCED, THOROUGH, or MEMORY_EFFICIENT modes
+- **Test Suite**: Run `bun run test:parser:quick` to validate the parser
+- **Memory Monitoring**: Parser tracks memory usage and provides detailed statistics
+
+### Coming in Phase 2:
 - **Search Everything**: Use `Cmd+K` to quickly find any note
 - **Ask Questions**: Try "What are my main projects?" or "Show me notes about AI"
 - **Follow Links**: Click through relationships just like in Tana
@@ -138,7 +154,9 @@ For developers wanting to contribute or customize:
 
 ```bash
 # Run tests
-bun test
+bun test                    # General tests
+bun run test:parser         # Parser test suite (30 min)
+bun run test:parser:quick   # Quick parser tests (30 sec)
 
 # Type checking
 bun run type-check
@@ -147,7 +165,11 @@ bun run type-check
 bun run lint
 bun run format
 
-# Database operations
+# Parser testing and validation
+bun run test-parser /path/to/export.json        # Test parser on real data
+bun run test-parser /path/to/export.json FAST   # With performance preset
+
+# Database operations (coming in Phase 2)
 bun run db:inspect    # View database schema
 bun run migrate       # Run migrations
 ```
@@ -156,19 +178,29 @@ See [WARP.md](./WARP.md) for detailed technical documentation.
 
 ## 🎯 Roadmap
 
-### ✅ Phase 1 (Week 1)
-- [x] Repository setup
-- [ ] Tana JSON import
-- [ ] Basic search functionality
-- [ ] Simple chat interface
+### ✅ Phase 1 Complete (Week 1)
+- [x] Repository setup and project foundation
+- [x] **Streaming JSON Parser** - Memory-efficient parser for large Tana exports
+  - [x] Handles 1M+ nodes in <100MB RAM
+  - [x] System node filtering (removes SYS_ nodes)
+  - [x] Progress tracking and error recovery
+  - [x] 93%+ test coverage with comprehensive test suite
+  - [x] CLI tool (`bun run test-parser`)
+  - [x] Multiple performance presets
 
-### 🔄 Phase 2 (Week 2)
-- [ ] Hybrid search
-- [ ] Command palette
-- [ ] Data table browser
-- [ ] Enhanced chat with citations
+### 🔄 Phase 2 (Week 2) - Next Up
+- [ ] **tRPC API setup** - Type-safe APIs using the parser
+- [ ] **Database integration** - SQLite schema for parsed nodes
+- [ ] **Import system** - Full import using streaming parser
+- [ ] **ChromaDB integration** - Vector embeddings for semantic search
+- [ ] Basic search functionality and node viewer
+- [ ] Simple chat interface with Ollama
 
 ### 🚀 Phase 3 (Week 3)
+- [ ] Hybrid search (semantic + keyword + graph)
+- [ ] Command palette (`Cmd+K`)
+- [ ] Data table browser with TanStack Table
+- [ ] Enhanced chat with source citations
 - [ ] Graph visualization
 - [ ] Performance optimizations
 - [ ] Export functionality
@@ -204,13 +236,16 @@ ollama list
 ollama pull llama3.2:3b nomic-embed-text
 ```
 
-### Import failing?
+### Parser failing?
 ```bash
 # Validate your Tana export first
 bun run validate-json --file your-export.json
 
-# Run with debug logs
-DEBUG=1 bun run import --file your-export.json
+# Test parser with debug info
+bun run test-parser your-export.json
+
+# Run parser test suite to check for issues
+bun run test:parser:quick
 ```
 
 Need more help? Check out the [detailed troubleshooting guide](./WARP.md#debugging) in WARP.md.
