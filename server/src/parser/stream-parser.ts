@@ -110,8 +110,8 @@ export class StreamParser extends EventEmitter {
       let inString = false
       let escapeNext = false
       
-      stream.on('data', (chunk: string) => {
-        buffer += chunk
+      stream.on('data', (chunk: string | Buffer) => {
+        buffer += chunk.toString()
         
         // Process buffer character by character to find nodes
         for (let i = 0; i < buffer.length; i++) {
@@ -181,8 +181,8 @@ export class StreamParser extends EventEmitter {
         }
       )
       
-      stream.on('data', async (chunk: string) => {
-        buffer += chunk
+      stream.on('data', async (chunk: string | Buffer) => {
+        buffer += chunk.toString()
         
         try {
           await this.processBuffer(buffer, batcher)

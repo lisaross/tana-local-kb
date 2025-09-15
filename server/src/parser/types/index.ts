@@ -72,6 +72,9 @@ export interface ParserOptions {
   preserveRawData: boolean
   normalizeContent: boolean
   
+  // Validation options
+  validateNodes?: boolean
+  
   // Node filtering
   nodeFilter?: (node: RawTanaNode) => boolean
 }
