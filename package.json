@@ -43,7 +43,13 @@
     "chroma:query": "bun run scripts/chroma-query.ts",
     "profile": "bun run scripts/profile.ts",
     "monitor": "bun run scripts/monitor.ts",
-    "test-parser": "bun run scripts/test-parser.ts"
+    "test-parser": "bun run scripts/test-parser.ts",
+    "test:database": "bun run scripts/test-database.ts",
+    "test:db:connection": "bun run scripts/test-database.ts connection",
+    "test:db:migrations": "bun run scripts/test-database.ts migrations",
+    "test:db:operations": "bun run scripts/test-database.ts operations",
+    "test:db:transactions": "bun run scripts/test-database.ts transactions",
+    "test:db:performance": "bun run scripts/test-database.ts performance"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.3.2",
