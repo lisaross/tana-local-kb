@@ -151,7 +151,7 @@ export class StreamParser extends EventEmitter {
             braceDepth--
           } else if (char === '[') {
             // Check if this is the start of a nodes array with proper whitespace handling
-            const precedingChars = buffer.substring(Math.max(0, i - 20), i)
+            const precedingChars = buffer.substring(Math.max(0, i - 64), i)
             if (/"\s*nodes\s*"\s*:\s*$/.test(precedingChars)) {
               inNodesArray = true
             }
@@ -273,7 +273,7 @@ export class StreamParser extends EventEmitter {
       
       // Check for nodes array start with proper whitespace handling
       if (char === '[') {
-        const precedingChars = buffer.substring(Math.max(0, i - 20), i)
+        const precedingChars = buffer.substring(Math.max(0, i - 64), i)
         if (/"\s*nodes\s*"\s*:\s*$/.test(precedingChars)) {
           inNodesArray = true
         }
