@@ -86,4 +86,7 @@ exports/
 
 # User configuration
 user-config.json
-settings.local.json
+settings.local.json# Claude Code hooks and settings (local only)
+.claude/
+launch.sh
+claude.sh
