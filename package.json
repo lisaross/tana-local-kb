@@ -54,7 +54,6 @@
     "profile": "bun run scripts/profile.ts",
     "monitor": "bun run scripts/monitor.ts",
     "test-parser": "bun run scripts/test-parser.ts",
-    "test:database": "bun run scripts/test-database.ts",
     "test:db:connection": "bun run scripts/test-database.ts connection",
     "test:db:migrations": "bun run scripts/test-database.ts migrations",
     "test:db:operations": "bun run scripts/test-database.ts operations",

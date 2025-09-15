@@ -7,7 +7,7 @@
 
 import { join } from 'path'
 import type { DatabaseConfig } from '../types/database-types.js'
-import { getConfigPreset, mergeConfig, validateConfig } from './settings.js'
+import { getConfigPreset, mergeConfig, validateConfig, CONFIG_PRESETS } from './settings.js'
 
 /**
  * Environment variable names for database configuration
@@ -118,7 +118,7 @@ export function getDatabaseConfig(): DatabaseConfig {
   // Start with environment preset
   let config: Partial<DatabaseConfig>
   try {
-    config = getConfigPreset(preset as any)
+    config = getConfigPreset(preset as keyof typeof CONFIG_PRESETS)
   } catch {
     // Fallback to development if preset is unknown
     console.warn(`Unknown database preset: ${preset}, falling back to development`)
@@ -127,7 +127,7 @@ export function getDatabaseConfig(): DatabaseConfig {
   
   // Merge with environment variables
   const envConfig = loadEnvironmentConfig()
-  config = mergeConfig(preset as any, envConfig)
+  config = mergeConfig(preset as keyof typeof CONFIG_PRESETS, envConfig)
   
   // Ensure required fields have defaults
   const fullConfig: DatabaseConfig = {
