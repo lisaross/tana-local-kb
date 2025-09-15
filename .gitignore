@@ -19,13 +19,18 @@ venv.bak/
 # Bun
 bun.lockb
 
-# Data and databases
-data/
+# Data and databases (production data)
+data/imports/
+data/tana.db
+data/chroma/
 *.db
 *.sqlite
 *.sqlite3
 chroma/
 chroma-data/
+
+# Allow sample data for development
+!data/samples/
 
 # Testing coverage
 coverage/
