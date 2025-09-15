@@ -89,6 +89,10 @@ exports/
 *.backup
 *.bak
 
+# Large sample files (keep samples small for repo)
+data/samples/*.json
+!data/samples/README.md
+
 # User configuration
 user-config.json
 settings.local.json
