@@ -48,7 +48,7 @@ export class StreamParser extends EventEmitter {
     super()
     this.options = { ...DEFAULT_PARSER_OPTIONS, ...options }
     this.progressTracker = new ProgressTracker(
-      this.options.progressCallback || createConsoleReporter(),
+      this.options.progressCallback,
       this.options.progressInterval
     )
   }
@@ -177,24 +177,19 @@ export class StreamParser extends EventEmitter {
       const batcher = createMemoryAwareBatcher<TanaNode>(
         this.options.memoryLimit,
         async (batch: TanaNode[]) => {
-          allNodes.push(...batch)
+          if (this.options.returnNodes !== false) {
+            allNodes.push(...batch)
+          }
           this.emit('batch', batch)
         }
       )
       
       stream.on('data', async (chunk: string | Buffer) => {
         buffer += chunk.toString()
-        
+        // Backpressure: pause reads while we process
+        stream.pause()
         try {
-          await this.processBuffer(buffer, batcher)
-          
-          // Keep reasonable buffer size
-          if (buffer.length > 10000) {
-            const lastCompleteNode = buffer.lastIndexOf('}')
-            if (lastCompleteNode > 0) {
-              buffer = buffer.slice(lastCompleteNode + 1)
-            }
-          }
+          buffer = await this.processBuffer(buffer, batcher)
           
           // Check memory limit
           const currentMemory = getMemoryUsage()
@@ -210,13 +205,15 @@ export class StreamParser extends EventEmitter {
           
         } catch (error) {
           this.handleError(error instanceof Error ? error : new Error('Processing error'))
+        } finally {
+          stream.resume()
         }
       })
       
       stream.on('end', async () => {
         try {
           // Process any remaining buffer
-          await this.processBuffer(buffer, batcher, true)
+          buffer = await this.processBuffer(buffer, batcher, true)
           await batcher.flush()
           
           resolve(allNodes)
@@ -233,15 +230,16 @@ export class StreamParser extends EventEmitter {
    * Process buffer and extract complete JSON nodes
    */
   private async processBuffer(
-    buffer: string, 
+    buffer: string,
     batcher: MemoryAwareBatcher<TanaNode>,
     _isEnd: boolean = false
-  ): Promise<void> {
+  ): Promise<string> {
     let braceDepth = 0
     let nodeStart = -1
     let inString = false
     let escapeNext = false
     let inNodesArray = false
+    let lastConsumedIndex = 0
     
     for (let i = 0; i < buffer.length; i++) {
       const char = buffer[i]
@@ -286,6 +284,7 @@ export class StreamParser extends EventEmitter {
           try {
             const rawNode: RawTanaNode = JSON.parse(nodeJson)
             await this.processNode(rawNode, batcher)
+            lastConsumedIndex = i + 1
           } catch (error) {
             this.handleError(new ParseError(
               `Failed to parse node JSON: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -299,8 +298,12 @@ export class StreamParser extends EventEmitter {
         }
       } else if (char === ']' && braceDepth === 0) {
         inNodesArray = false
+        // We've reached the end of the nodes array; everything up to here is consumable
+        lastConsumedIndex = Math.max(lastConsumedIndex, i + 1)
       }
     }
+    // Return the unprocessed tail so the caller can retain only what's needed
+    return lastConsumedIndex > 0 ? buffer.slice(lastConsumedIndex) : buffer
   }
   
   /**
@@ -330,7 +333,7 @@ export class StreamParser extends EventEmitter {
       const { nodes, errors } = batchProcessNodes([rawNode], {
         preserveRawData: this.options.preserveRawData,
         normalizeContent: this.options.normalizeContent,
-        validateNodes: true
+        validateNodes: this.options.validateNodes ?? true
       })
       
       if (errors.length > 0) {

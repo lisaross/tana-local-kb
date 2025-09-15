@@ -62,7 +62,7 @@ export interface ParserOptions {
   
   // Progress tracking
   progressCallback?: ProgressCallback
-  progressInterval: number // Report progress every N nodes
+  progressInterval: number // Report interval in ms (default: 1000)
   
   // Error handling
   continueOnError: boolean
@@ -74,6 +74,9 @@ export interface ParserOptions {
   
   // Validation options
   validateNodes?: boolean
+  
+  // Memory options
+  returnNodes?: boolean // If false, don't accumulate nodes in memory (default: true)
   
   // Node filtering
   nodeFilter?: (node: RawTanaNode) => boolean
@@ -93,11 +96,12 @@ export const DEFAULT_PARSER_OPTIONS: ParserOptions = {
   excludeFields: [],
   batchSize: 1000,
   memoryLimit: 100,
-  progressInterval: 100,
+  progressInterval: 1000,
   continueOnError: true,
   maxErrors: 1000,
   preserveRawData: false,
   normalizeContent: true,
+  returnNodes: true,
 }
 
 // Parser error types
