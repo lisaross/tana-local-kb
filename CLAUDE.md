@@ -118,15 +118,19 @@ Run `bun test` for unit/integration tests, `bun test:e2e` for end-to-end tests.
 
 ### CodeRabbit Review Process
 
-**MANDATORY WORKFLOW** - Follow this process to prevent missing critical issues:
+**MANDATORY WORKFLOW** - Follow this process to work with CodeRabbit's incremental review system:
 
 1. **Initial Triage**: Use `coderabbit-triage` agent to get comprehensive issue analysis
-2. **Fix by Priority**: Address Critical → Important → Nice-to-have → Nitpicks
-3. **Commit Systematically**: Document each fix with descriptive commit messages
-4. **🚨 MANDATORY RE-AUDIT**: Re-run `coderabbit-triage` agent to verify ALL issues resolved  
-5. **Evidence-Based Completion**: Only declare complete when triage confirms zero critical issues
+2. **Fix EXACT Lines**: Address the specific files/lines CodeRabbit flagged (not equivalent fixes elsewhere)
+3. **Commit & Push**: Each fix triggers CodeRabbit's auto-review of changed lines
+4. **Wait for Auto-Review**: Allow CodeRabbit time to process commits and mark comments "outdated"
+5. **🚨 MANDATORY RE-AUDIT**: Re-run `coderabbit-triage` after auto-review completes
+6. **Evidence-Based Completion**: Only complete when comments are marked "outdated"
 
-**CRITICAL RULE**: Never assume you've fixed everything without running the triage agent again!
+**CRITICAL RULES**: 
+- CodeRabbit reviews incrementally (commit-by-commit), never re-reviews old commits
+- Comments persist until you change the EXACT lines flagged
+- Manual `@coderabbitai review` only works when auto-review is paused
 
 **Quality Gate Categories:**
 - 🔴 **Critical**: Security, data corruption, crashes (MUST fix immediately)
