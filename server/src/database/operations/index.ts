@@ -241,7 +241,11 @@ export class DatabaseOperations {
       })
 
       // Optimize query planner
-      await this.nodes.db.run('PRAGMA optimize')
+      try {
+        this.nodes.db.run('PRAGMA optimize')
+      } catch (error) {
+        console.warn('PRAGMA optimize not supported:', error)
+      }
       optimizations.push({
         type: 'planner',
         description: 'Optimized query planner settings',

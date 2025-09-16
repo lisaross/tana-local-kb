@@ -12,7 +12,7 @@
  *   bun run benchmark --compare    # Compare with baseline
  */
 
-import { getDatabase } from '../server/src/database/index.js'
+import { initializeDatabase, getDatabase } from '../server/src/database/index.js'
 import { createDatabaseOperations } from '../server/src/database/operations/index.js'
 import type { TanaNode } from '../server/src/parser/types/index.js'
 
@@ -323,8 +323,7 @@ async function main() {
     console.log('==========================================')
     
     // Initialize database
-    const db = getDatabase()
-    await db.query('PRAGMA optimize').run()
+    const db = await initializeDatabase()
     
     const ops = createDatabaseOperations(db)
     

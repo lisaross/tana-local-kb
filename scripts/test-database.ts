@@ -220,16 +220,20 @@ async function testPerformance(): Promise<void> {
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `)
       
-      for (let i = 0; i < batchSize; i++) {
-        stmt.run([
-          `perf-test-${i}`,
-          `Performance Test Node ${i}`,
-          `This is test content for node ${i}`,
-          'node',
-          false,
-          '{}',
-          '{}'
-        ])
+      try {
+        for (let i = 0; i < batchSize; i++) {
+          stmt.run([
+            `perf-test-${i}`,
+            `Performance Test Node ${i}`,
+            `This is test content for node ${i}`,
+            'node',
+            false,
+            '{}',
+            '{}'
+          ])
+        }
+      } finally {
+        stmt.finalize?.()
       }
     })
     

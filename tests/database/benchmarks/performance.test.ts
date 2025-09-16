@@ -69,7 +69,7 @@ describe('Database Performance Benchmarks', () => {
     operation: () => Promise<T>,
     operationCount: number = 1
   ): Promise<{ result: T; metrics: PerformanceMetrics }> {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve, reject) => {
       // Force garbage collection if available
       if (global.gc) {
         global.gc()
@@ -88,30 +88,31 @@ describe('Database Performance Benchmarks', () => {
 
       const startTime = Date.now()
       
-      try {
-        const result = await operation()
-        const endTime = Date.now()
-        
-        clearInterval(memoryMonitor)
-        
-        const memoryAfter = process.memoryUsage().heapUsed / 1024 / 1024
-        const duration = endTime - startTime
-        const throughput = operationCount / (duration / 1000) // ops per second
-        
-        const metrics: PerformanceMetrics = {
-          duration,
-          memoryBefore,
-          memoryAfter,
-          memoryPeak,
-          throughput,
-          operationsPerSecond: throughput
-        }
+      operation()
+        .then((result) => {
+          const endTime = Date.now()
+          
+          clearInterval(memoryMonitor)
+          
+          const memoryAfter = process.memoryUsage().heapUsed / 1024 / 1024
+          const duration = endTime - startTime
+          const throughput = operationCount / (duration / 1000) // ops per second
+          
+          const metrics: PerformanceMetrics = {
+            duration,
+            memoryBefore,
+            memoryAfter,
+            memoryPeak,
+            throughput,
+            operationsPerSecond: throughput
+          }
 
-        resolve({ result, metrics })
-      } catch (error) {
-        clearInterval(memoryMonitor)
-        throw error
-      }
+          resolve({ result, metrics })
+        })
+        .catch((error) => {
+          clearInterval(memoryMonitor)
+          reject(error)
+        })
     })
   }
 

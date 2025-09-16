@@ -10,8 +10,7 @@
  *   bun run db:inspect --health  # Show database health
  */
 
-import { getDatabase } from '../server/src/database/index.js'
-import { createDatabaseOperations } from '../server/src/database/operations/index.js'
+import { initializeDatabase, getDatabase } from '../server/src/database/index.js'
 
 interface InspectOptions {
   schema?: boolean
@@ -25,8 +24,8 @@ function parseArgs(): InspectOptions {
   return {
     schema: args.includes('--schema') || args.includes('-s'),
     stats: args.includes('--stats') || args.includes('--statistics'),
-    health: args.includes('--health') || args.includes('-h'),
-    help: args.includes('--help')
+    health: args.includes('--health') || args.includes('-H'),
+    help: args.includes('--help') || args.includes('-h')
   }
 }
 
@@ -38,10 +37,10 @@ Usage:
   bun run db:inspect [options]
 
 Options:
-  --schema          Show detailed database schema
+  --schema, -s      Show detailed database schema
   --stats           Show table statistics and counts
-  --health          Show database health and performance metrics
-  --help            Show this help message
+  --health, -H      Show database health and performance metrics
+  --help, -h        Show this help message
 
 Examples:
   bun run db:inspect              # Database overview
@@ -74,7 +73,7 @@ async function showOverview(db: any) {
     WHERE type IN ('table', 'view') 
     AND name NOT LIKE 'sqlite_%'
     ORDER BY type, name
-  `).all()
+  `)
   
   console.log(`\nTables: ${tables.filter((t: any) => t.type === 'table').length}`)
   console.log(`Views: ${tables.filter((t: any) => t.type === 'view').length}`)
@@ -83,7 +82,7 @@ async function showOverview(db: any) {
   const mainTables = ['nodes', 'node_hierarchy', 'node_references']
   for (const table of mainTables) {
     if (tables.some((t: any) => t.name === table)) {
-      const count = db.query(`SELECT COUNT(*) as count FROM ${table}`).get() as { count: number }
+      const count = db.query(`SELECT COUNT(*) as count FROM ${table}`)[0] as { count: number }
       console.log(`${table}: ${count.count.toLocaleString()} records`)
     }
   }
@@ -100,14 +99,14 @@ async function showSchema(db: any) {
     WHERE type = 'table' 
     AND name NOT LIKE 'sqlite_%'
     ORDER BY name
-  `).all()
+  `)
   
   for (const table of tables) {
     console.log(`\n📋 Table: ${table.name}`)
     console.log('─'.repeat(50))
     
     // Get column information
-    const columns = db.query(`PRAGMA table_info(${table.name})`).all()
+    const columns = db.query(`PRAGMA table_info(${table.name})`)
     
     console.log('Columns:')
     columns.forEach((col: any) => {
@@ -118,7 +117,7 @@ async function showSchema(db: any) {
     })
     
     // Get foreign keys
-    const foreignKeys = db.query(`PRAGMA foreign_key_list(${table.name})`).all()
+    const foreignKeys = db.query(`PRAGMA foreign_key_list(${table.name})`)
     if (foreignKeys.length > 0) {
       console.log('Foreign Keys:')
       foreignKeys.forEach((fk: any) => {
@@ -127,7 +126,7 @@ async function showSchema(db: any) {
     }
     
     // Get indexes
-    const indexes = db.query(`PRAGMA index_list(${table.name})`).all()
+    const indexes = db.query(`PRAGMA index_list(${table.name})`)
     if (indexes.length > 0) {
       console.log('Indexes:')
       indexes.forEach((idx: any) => {
@@ -148,14 +147,14 @@ async function showStats(db: any) {
     WHERE type = 'table' 
     AND name NOT LIKE 'sqlite_%'
     ORDER BY name
-  `).all()
+  `)
   
   for (const table of tables) {
     console.log(`\n📊 ${table.name}`)
     console.log('─'.repeat(30))
     
     // Row count
-    const count = db.query(`SELECT COUNT(*) as count FROM ${table.name}`).get() as { count: number }
+    const count = db.query(`SELECT COUNT(*) as count FROM ${table.name}`)[0] as { count: number }
     console.log(`Rows: ${count.count.toLocaleString()}`)
     
     // Table size (approximate)
@@ -170,7 +169,7 @@ async function showStats(db: any) {
         ), (
           SELECT page_size FROM pragma_page_size()
         )
-      `).get() as { size: number, page_count: number, page_size: number }
+      `)[0] as { size: number, page_count: number, page_size: number }
       
       console.log(`Size: ${(sizeQuery.size / 1024).toFixed(2)} KB`)
       console.log(`Pages: ${sizeQuery.page_count}`)
@@ -181,7 +180,7 @@ async function showStats(db: any) {
     
     // Sample of data types for text columns
     try {
-      const columns = db.query(`PRAGMA table_info(${table.name})`).all()
+      const columns = db.query(`PRAGMA table_info(${table.name})`)
       const textColumns = columns.filter((col: any) => 
         col.type.toLowerCase().includes('text') || 
         col.type.toLowerCase().includes('varchar')
@@ -193,7 +192,7 @@ async function showStats(db: any) {
           SELECT AVG(LENGTH(${sampleColumn})) as avg_length 
           FROM ${table.name} 
           WHERE ${sampleColumn} IS NOT NULL
-        `).get() as { avg_length: number }
+        `)[0] as { avg_length: number }
         
         if (avgLength.avg_length) {
           console.log(`Avg ${sampleColumn} length: ${Math.round(avgLength.avg_length)} chars`)
@@ -222,7 +221,7 @@ async function showHealth(db: any) {
   console.log('Settings:')
   for (const setting of settings) {
     try {
-      const value = db.query(`PRAGMA ${setting}`).get()
+      const value = db.query(`PRAGMA ${setting}`)[0]
       console.log(`  ${setting}: ${Object.values(value)[0]}`)
     } catch (error) {
       console.log(`  ${setting}: Error reading`)
@@ -236,7 +235,7 @@ async function showHealth(db: any) {
       SELECT name, tbl, stat 
       FROM sqlite_stat1 
       ORDER BY name
-    `).all()
+    `)
     
     if (indexStats.length > 0) {
       indexStats.forEach((stat: any) => {
@@ -252,7 +251,7 @@ async function showHealth(db: any) {
   // Integrity check
   console.log('\nIntegrity Check:')
   try {
-    const integrity = db.query('PRAGMA integrity_check').all()
+    const integrity = db.query('PRAGMA integrity_check')
     if (integrity.length === 1 && integrity[0]['integrity_check'] === 'ok') {
       console.log('  ✅ Database integrity: OK')
     } else {
@@ -269,7 +268,7 @@ async function showHealth(db: any) {
   console.log('\nPerformance Test:')
   try {
     const start = performance.now()
-    db.query('SELECT COUNT(*) FROM sqlite_master').get()
+    db.query('SELECT COUNT(*) FROM sqlite_master')[0]
     const duration = performance.now() - start
     console.log(`  Simple query: ${duration.toFixed(2)}ms`)
     
@@ -295,7 +294,7 @@ async function main() {
 
   try {
     console.log('🗃️  Connecting to database...')
-    const db = getDatabase()
+    const db = await initializeDatabase()
     
     if (options.schema) {
       await showSchema(db)

@@ -292,7 +292,11 @@ export const dbUtils = {
     connection.run('ANALYZE')
     
     // Optimize query planner
-    connection.run('PRAGMA optimize')
+    try {
+      connection.run('PRAGMA optimize')
+    } catch (error) {
+      console.warn('PRAGMA optimize not supported:', error)
+    }
     
     // Incremental vacuum if needed
     const config = getDatabaseConfiguration()

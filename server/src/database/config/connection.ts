@@ -355,7 +355,8 @@ export class ConnectionPool {
     // Apply PRAGMA settings (outside any transaction)
     Object.entries(this.config.pragmas || {}).forEach(([pragma, value]) => {
       try {
-        db.run(`PRAGMA ${pragma} = ${value}`)
+        const formattedValue = typeof value === 'string' && !value.startsWith("'") ? `'${value}'` : value
+        db.run(`PRAGMA ${pragma} = ${formattedValue}`)
       } catch (error) {
         console.warn(`Failed to set PRAGMA ${pragma}:`, error)
       }
@@ -390,7 +391,8 @@ export async function createConnection(config: DatabaseConfig): Promise<BunDatab
     // Apply PRAGMA settings for performance optimization (outside any transaction)
     Object.entries(config.pragmas || {}).forEach(([pragma, value]) => {
       try {
-        db.run(`PRAGMA ${pragma} = ${value}`)
+        const formattedValue = typeof value === 'string' && !value.startsWith("'") ? `'${value}'` : value
+        db.run(`PRAGMA ${pragma} = ${formattedValue}`)
       } catch (error) {
         console.warn(`Failed to set PRAGMA ${pragma}:`, error)
       }
