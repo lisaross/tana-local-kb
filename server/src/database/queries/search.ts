@@ -589,12 +589,20 @@ export class SearchOperations {
     const pageSize = pagination?.pageSize ?? 50
     const sortBy = pagination?.sortBy ?? 'created_at'
     const sortDirection = pagination?.sortDirection ?? 'DESC'
+    
+    // Validate sortBy to prevent SQL injection
+    const allowedSortFields = ['id', 'name', 'content', 'created_at', 'updated_at', 'node_type']
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'created_at'
+    
+    // Validate sortDirection to prevent SQL injection
+    const safeSortDirection = sortDirection === 'ASC' ? 'ASC' : 'DESC'
+    
     const offset = (page - 1) * pageSize
 
     const results = this.db.query<NodeRecord>(`
       SELECT n.* FROM nodes n 
       ${whereClause}
-      ORDER BY n.${sortBy} ${sortDirection}
+      ORDER BY n.${safeSortBy} ${safeSortDirection}
       LIMIT ? OFFSET ?
     `, [...params, pageSize, offset])
 

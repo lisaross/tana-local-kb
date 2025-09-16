@@ -51,7 +51,15 @@ describe('Database Performance Benchmarks', () => {
   const benchmarkResults: BenchmarkResult[] = []
 
   beforeEach(async () => {
-    connection = await dbUtils.createTestConnection({ enableFTS: true })
+    connection = await dbUtils.createTestConnection({ 
+      enableFTS: true,
+      enableWAL: true,
+      pragmas: { 
+        journal_mode: 'WAL',
+        foreign_keys: 'ON',
+        busy_timeout: '5000'  // 5 second timeout for lock contention
+      }
+    })
     nodeOps = createNodeOperations(connection)
     edgeOps = createEdgeOperations(connection)
     batchOps = createBatchOperations(connection)
@@ -248,7 +256,7 @@ describe('Database Performance Benchmarks', () => {
           id: `update-node-${i}`,
           name: `Update Node ${i}`,
           content: `Original content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -602,7 +610,7 @@ describe('Database Performance Benchmarks', () => {
                 id: nodeId,
                 name: `Stress Test Node ${batch}-${i}`,
                 content: `Content for stress test batch ${batch} node ${i}`,
-                node_type: 'note',
+                node_type: 'node',
                 is_system_node: false,
                 tags: [`batch-${batch}`, `stress-test`]
               })
@@ -659,7 +667,7 @@ describe('Database Performance Benchmarks', () => {
                 id: `memory-${i}-${j}`,
                 name: `Memory Test ${i}-${j}`,
                 content: `Content ${i}-${j}`,
-                node_type: 'note',
+                node_type: 'node',
                 is_system_node: false
               })
             }
@@ -726,7 +734,7 @@ describe('Database Performance Benchmarks', () => {
                 id: `concurrent-${op}-${i}`,
                 name: `Concurrent Node ${op}-${i}`,
                 content: `Content ${op}-${i}`,
-                node_type: 'note',
+                node_type: 'node',
                 is_system_node: false
               })
             }

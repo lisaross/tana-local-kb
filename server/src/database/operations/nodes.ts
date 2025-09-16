@@ -17,6 +17,12 @@ import type {
   PaginatedResult,
   ValidationRule
 } from '../types/index.js'
+
+// Extended interface for test convenience - allows passing tags and metadata as properties
+interface NodeInsertWithExtras extends NodeInsert {
+  tags?: string[]
+  metadata?: Record<string, any>
+}
 import type { TanaNode } from '../../parser/types/index.js'
 import { DatabaseError, ConstraintViolationError } from '../types/database-types.js'
 import { QUERY_PATTERNS, DB_CONSTRAINTS } from '../types/schema.js'
@@ -115,13 +121,16 @@ export class NodeOperations {
   /**
    * Create a new node
    */
-  async createNode(nodeData: NodeInsert): Promise<NodeRecord> {
+  async createNode(nodeData: NodeInsertWithExtras): Promise<NodeRecord> {
     validateNode(nodeData)
 
     const now = new Date().toISOString()
     const node: NodeInsert = {
       ...nodeData,
+      created_at: nodeData.created_at || now,
       updated_at: now,
+      fields_json: nodeData.fields_json || JSON.stringify(nodeData.tags ? { tags: nodeData.tags } : {}),
+      metadata_json: nodeData.metadata_json || JSON.stringify(nodeData.metadata || {}),
     }
 
     try {
@@ -160,7 +169,7 @@ export class NodeOperations {
   /**
    * Create multiple nodes in a transaction
    */
-  async createNodes(nodesData: NodeInsert[]): Promise<NodeRecord[]> {
+  async createNodes(nodesData: NodeInsertWithExtras[]): Promise<NodeRecord[]> {
     if (nodesData.length === 0) return []
 
     return this.db.transaction((tx) => {
@@ -172,7 +181,10 @@ export class NodeOperations {
 
         const node: NodeInsert = {
           ...nodeData,
+          created_at: nodeData.created_at || now,
           updated_at: now,
+          fields_json: nodeData.fields_json || JSON.stringify(nodeData.tags ? { tags: nodeData.tags } : {}),
+          metadata_json: nodeData.metadata_json || JSON.stringify(nodeData.metadata || {}),
         }
 
         try {
@@ -526,8 +538,15 @@ export class NodeOperations {
     const sortBy = pagination?.sortBy ?? 'created_at'
     const sortDirection = pagination?.sortDirection ?? 'DESC'
     
+    // Validate sortBy to prevent SQL injection
+    const allowedSortFields = ['id', 'name', 'content', 'created_at', 'updated_at', 'node_type']
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'created_at'
+    
+    // Validate sortDirection to prevent SQL injection
+    const safeSortDirection = sortDirection === 'ASC' ? 'ASC' : 'DESC'
+    
     const offset = (page - 1) * pageSize
-    const orderBy = `ORDER BY ${sortBy} ${sortDirection}`
+    const orderBy = `ORDER BY ${safeSortBy} ${safeSortDirection}`
     const limitClause = `LIMIT ${pageSize} OFFSET ${offset}`
 
     const data = this.db.query<NodeRecord>(`

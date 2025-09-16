@@ -265,8 +265,8 @@ export class DatabaseError extends Error {
 }
 
 export class SchemaVersionError extends DatabaseError {
-  constructor(expected: number, actual: number) {
-    super(`Schema version mismatch: expected ${expected}, got ${actual}`)
+  constructor(expected: number, actual: number, customMessage?: string) {
+    super(customMessage || `Schema version mismatch: expected ${expected}, got ${actual}`)
     this.name = 'SchemaVersionError'
   }
 }

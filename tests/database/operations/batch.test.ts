@@ -55,7 +55,7 @@ describe('Batch Operations', () => {
           id: `batch-node-${i}`,
           name: `Batch Node ${i}`,
           content: `Content for batch node ${i} with some longer text to test memory usage`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false,
           tags: [`tag-${i % 10}`, `category-${Math.floor(i / 100)}`],
           metadata: { 
@@ -103,7 +103,7 @@ describe('Batch Operations', () => {
           id: `chunk-node-${i}`,
           name: `Chunk Node ${i}`,
           content: `Content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -125,21 +125,21 @@ describe('Batch Operations', () => {
           id: 'valid-1',
           name: 'Valid Node 1',
           content: 'Valid content',
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         },
         {
           id: 'invalid-1',
           name: '', // Invalid: empty name
           content: 'Invalid content',
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         } as NodeInsert,
         {
           id: 'valid-2',
           name: 'Valid Node 2',
           content: 'Valid content',
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         }
       ]
@@ -160,14 +160,14 @@ describe('Batch Operations', () => {
           id: 'rollback-1',
           name: 'Rollback Node 1',
           content: 'Content 1',
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         },
         {
           id: 'rollback-2',
           name: 'Rollback Node 2',
           content: 'Content 2',
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         }
       ]
@@ -196,7 +196,7 @@ describe('Batch Operations', () => {
           id: `update-batch-${i}`,
           name: `Original Node ${i}`,
           content: `Original content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -234,7 +234,7 @@ describe('Batch Operations', () => {
           id: `delete-batch-${i}`,
           name: `Delete Node ${i}`,
           content: `Content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -383,7 +383,7 @@ describe('Batch Operations', () => {
             id: 'mixed-2',
             name: 'Mixed Node 2',
             content: 'Content 2',
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           }
         },
@@ -440,7 +440,7 @@ describe('Batch Operations', () => {
             id: 'dep-child',
             name: 'Dependent Child',
             content: 'Child content',
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           }
         },
@@ -475,7 +475,7 @@ describe('Batch Operations', () => {
             id: 'rollback-test-1',
             name: 'Rollback Test 1',
             content: 'Content 1',
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           }
         },
@@ -485,7 +485,7 @@ describe('Batch Operations', () => {
             id: 'rollback-test-2',
             name: 'Rollback Test 2',
             content: 'Content 2',
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           }
         },
@@ -575,7 +575,7 @@ describe('Batch Operations', () => {
             id: `perf-batch-${batchSize}-${i}`,
             name: `Performance Batch Node ${i}`,
             content: `Content ${i}`,
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           })
         }
@@ -605,6 +605,17 @@ describe('Batch Operations', () => {
     })
 
     test('should handle concurrent batch operations safely', async () => {
+      // Create a connection with WAL mode for proper concurrency support
+      const concurrentConnection = await dbUtils.createTestConnection({
+        enableWAL: true,
+        pragmas: { 
+          journal_mode: 'WAL',
+          foreign_keys: 'ON',
+          busy_timeout: '5000'  // 5 second timeout for lock contention
+        }
+      })
+      const concurrentBatchOps = createBatchOperations(concurrentConnection)
+      
       const concurrentBatches = 5
       const batchSize = 200
       const promises: Promise<any>[] = []
@@ -616,15 +627,17 @@ describe('Batch Operations', () => {
             id: `concurrent-${batch}-${i}`,
             name: `Concurrent Node ${batch}-${i}`,
             content: `Content ${batch}-${i}`,
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           })
         }
 
-        promises.push(batchOps.batchCreateNodes(nodes))
+        promises.push(concurrentBatchOps.batchCreateNodes(nodes))
       }
 
       const results = await Promise.all(promises)
+      
+      await concurrentConnection.close()
       
       // All batches should succeed
       for (const result of results) {
@@ -651,7 +664,7 @@ describe('Batch Operations', () => {
           id: `progress-node-${i}`,
           name: `Progress Node ${i}`,
           content: `Content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -684,7 +697,7 @@ describe('Batch Operations', () => {
           id: `stats-node-${i}`,
           name: `Stats Node ${i}`,
           content: `Content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -711,7 +724,7 @@ describe('Batch Operations', () => {
           id: `cancel-node-${i}`,
           name: `Cancel Node ${i}`,
           content: `Content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -746,7 +759,7 @@ describe('Batch Operations', () => {
           id: `recovery-node-${i}`,
           name: `Recovery Node ${i}`,
           content: `Content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -772,7 +785,7 @@ describe('Batch Operations', () => {
           id: `corruption-node-${i}`,
           name: `Corruption Node ${i}`,
           content: i === 5 ? null as any : `Content ${i}`, // Introduce corruption
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
@@ -797,7 +810,7 @@ describe('Batch Operations', () => {
           id: 'stress-test-node',
           name: `Stress Test Node ${i}`,
           content: `Content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         }]
 

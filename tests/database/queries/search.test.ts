@@ -44,7 +44,7 @@ describe('Search Functionality', () => {
         id: 'tech-1',
         name: 'Introduction to Machine Learning',
         content: 'Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed. It uses algorithms and statistical models to analyze and draw inferences from patterns in data.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['technology', 'AI', 'machine-learning', 'algorithms']
       },
@@ -52,7 +52,7 @@ describe('Search Functionality', () => {
         id: 'tech-2',
         name: 'Deep Learning Fundamentals',
         content: 'Deep learning is a machine learning technique that teaches computers to do what comes naturally to humans: learn by example. It uses neural networks with multiple layers to progressively extract higher-level features from raw input.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['technology', 'AI', 'deep-learning', 'neural-networks']
       },
@@ -60,7 +60,7 @@ describe('Search Functionality', () => {
         id: 'tech-3',
         name: 'JavaScript Programming Guide',
         content: 'JavaScript is a versatile programming language that runs in web browsers and servers. It supports object-oriented, functional, and procedural programming paradigms. Modern JavaScript includes features like async/await, destructuring, and modules.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['programming', 'javascript', 'web-development']
       },
@@ -70,7 +70,7 @@ describe('Search Functionality', () => {
         id: 'science-1',
         name: 'Quantum Mechanics Basics',
         content: 'Quantum mechanics is a fundamental theory in physics that describes the behavior of matter and energy at atomic and subatomic scales. It introduces concepts like superposition, entanglement, and wave-particle duality.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['science', 'physics', 'quantum-mechanics']
       },
@@ -78,7 +78,7 @@ describe('Search Functionality', () => {
         id: 'science-2',
         name: 'DNA and Genetics',
         content: 'DNA (deoxyribonucleic acid) is the hereditary material in humans and almost all other organisms. It contains genetic instructions for the development and function of living things. Genes are segments of DNA that code for specific traits.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['science', 'biology', 'genetics', 'DNA']
       },
@@ -88,7 +88,7 @@ describe('Search Functionality', () => {
         id: 'business-1',
         name: 'Project Management Strategies',
         content: 'Effective project management involves planning, organizing, and managing resources to achieve specific goals. Key methodologies include Agile, Waterfall, and Scrum. Success factors include clear communication, risk management, and stakeholder engagement.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['business', 'project-management', 'agile', 'scrum']
       },
@@ -96,7 +96,7 @@ describe('Search Functionality', () => {
         id: 'business-2',
         name: 'Digital Marketing Trends',
         content: 'Digital marketing encompasses all marketing efforts that use electronic devices or the internet. Businesses leverage digital channels such as search engines, social media, email, and websites to connect with current and prospective customers.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['business', 'marketing', 'digital', 'social-media']
       },
@@ -106,7 +106,7 @@ describe('Search Functionality', () => {
         id: 'mixed-1',
         name: 'AI in Healthcare',
         content: 'Artificial intelligence is revolutionizing healthcare by enabling more accurate diagnoses, personalized treatment plans, and drug discovery. Machine learning algorithms can analyze medical images, predict patient outcomes, and assist in surgical procedures.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['technology', 'AI', 'healthcare', 'medicine']
       },
@@ -114,7 +114,7 @@ describe('Search Functionality', () => {
         id: 'mixed-2',
         name: 'Data Science for Business Intelligence',
         content: 'Data science combines domain expertise, programming skills, and knowledge of mathematics and statistics to extract meaningful insights from data. Business intelligence uses data science to inform strategic decisions and optimize operations.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['technology', 'data-science', 'business', 'analytics']
       },
@@ -124,7 +124,7 @@ describe('Search Functionality', () => {
         id: 'short-1',
         name: 'Quick Note',
         content: 'Remember to review the quarterly reports.',
-        node_type: 'note',
+        node_type: 'node',
         is_system_node: false,
         tags: ['reminder', 'business']
       },
@@ -134,7 +134,7 @@ describe('Search Functionality', () => {
         id: 'special-1',
         name: 'Mathematical Equations & Symbols',
         content: 'Einstein\'s famous equation: E = mc². The quadratic formula: x = (-b ± √(b²-4ac)) / 2a. These mathematical expressions demonstrate the beauty of mathematical notation.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['mathematics', 'equations', 'physics']
       }
@@ -246,10 +246,10 @@ describe('Search Functionality', () => {
   describe('Advanced Search Features', () => {
     test('should filter by node type', async () => {
       const articleResults = await searchQueries.searchNodes('technology', {
-        filters: { node_type: 'article' }
+        filters: { node_type: 'node' }
       })
       const noteResults = await searchQueries.searchNodes('business', {
-        filters: { node_type: 'note' }
+        filters: { node_type: 'node' }
       })
       
       expect(articleResults.nodes.length).toBeGreaterThan(0)
@@ -279,7 +279,7 @@ describe('Search Functionality', () => {
     test('should filter by multiple criteria', async () => {
       const multiFilterResults = await searchQueries.searchNodes('technology', {
         filters: {
-          node_type: 'article',
+          node_type: 'node',
           tags: ['AI'],
           is_system_node: false
         }
@@ -471,7 +471,7 @@ describe('Search Functionality', () => {
       
       const startTime = Date.now()
       const results = await searchQueries.searchNodes(complexQuery, {
-        filters: { node_type: 'article' },
+        filters: { node_type: 'node' },
         sort: { field: 'score', direction: 'desc' },
         pagination: { limit: 10, offset: 0 }
       })
@@ -491,7 +491,7 @@ describe('Search Functionality', () => {
           id: `large-${i}`,
           name: `Large Dataset Item ${i}`,
           content: `This is content item ${i} containing technology, programming, and various other keywords for testing search performance at scale.`,
-          node_type: 'article',
+          node_type: 'node',
           is_system_node: false,
           tags: [`tag-${i % 10}`, 'technology', 'test']
         })
@@ -698,7 +698,7 @@ describe('Search Functionality', () => {
         id: 'consistency-test',
         name: 'Consistency Test Article',
         content: 'This is a new article about blockchain technology and cryptocurrencies.',
-        node_type: 'article',
+        node_type: 'node',
         is_system_node: false,
         tags: ['blockchain', 'cryptocurrency', 'technology']
       }

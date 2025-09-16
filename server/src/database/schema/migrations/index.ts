@@ -325,6 +325,25 @@ function initializeMigrations(): void {
 export class MigrationRunner {
   constructor(private connection: DatabaseConnection) {
     initializeMigrations()
+    this.validateSchemaVersionConsistency()
+  }
+
+  /**
+   * Validate that CURRENT_SCHEMA_VERSION matches the last migration
+   */
+  private validateSchemaVersionConsistency(): void {
+    if (MIGRATIONS.length === 0) {
+      throw new DatabaseError('No migrations defined')
+    }
+    
+    const lastMigrationVersion = MIGRATIONS[MIGRATIONS.length - 1].version
+    if (lastMigrationVersion !== CURRENT_SCHEMA_VERSION) {
+      throw new SchemaVersionError(
+        lastMigrationVersion,
+        CURRENT_SCHEMA_VERSION,
+        `Schema version mismatch: CURRENT_SCHEMA_VERSION (${CURRENT_SCHEMA_VERSION}) does not match last migration version (${lastMigrationVersion})`
+      )
+    }
   }
 
   /**

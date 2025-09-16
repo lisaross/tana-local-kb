@@ -67,14 +67,14 @@ describe('Graph Traversal Algorithms', () => {
       { id: 'A1', name: 'A Child 1', content: 'First child of A', node_type: 'folder', is_system_node: false },
       { id: 'A2', name: 'A Child 2', content: 'Second child of A', node_type: 'folder', is_system_node: false },
       { id: 'B1', name: 'B Child 1', content: 'First child of B', node_type: 'folder', is_system_node: false },
-      { id: 'B2', name: 'B Child 2', content: 'Second child of B', node_type: 'note', is_system_node: false },
-      { id: 'C1', name: 'C Child 1', content: 'First child of C', node_type: 'note', is_system_node: false },
+      { id: 'B2', name: 'B Child 2', content: 'Second child of B', node_type: 'node', is_system_node: false },
+      { id: 'C1', name: 'C Child 1', content: 'First child of C', node_type: 'node', is_system_node: false },
       
       // Level 2
-      { id: 'A1a', name: 'A1 Child a', content: 'Child of A1', node_type: 'note', is_system_node: false },
-      { id: 'A1b', name: 'A1 Child b', content: 'Child of A1', node_type: 'note', is_system_node: false },
-      { id: 'A2a', name: 'A2 Child a', content: 'Child of A2', node_type: 'note', is_system_node: false },
-      { id: 'B1a', name: 'B1 Child a', content: 'Child of B1', node_type: 'note', is_system_node: false }
+      { id: 'A1a', name: 'A1 Child a', content: 'Child of A1', node_type: 'node', is_system_node: false },
+      { id: 'A1b', name: 'A1 Child b', content: 'Child of A1', node_type: 'node', is_system_node: false },
+      { id: 'A2a', name: 'A2 Child a', content: 'Child of A2', node_type: 'node', is_system_node: false },
+      { id: 'B1a', name: 'B1 Child a', content: 'Child of B1', node_type: 'node', is_system_node: false }
     ]
 
     await nodeOps.createNodes(nodes)
@@ -396,7 +396,7 @@ describe('Graph Traversal Algorithms', () => {
             id: nodeId,
             name: `Large Node ${branch}-${i}`,
             content: `Content ${branch}-${i}`,
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           })
           
@@ -437,7 +437,7 @@ describe('Graph Traversal Algorithms', () => {
             id: nodeId,
             name: `Grid Node ${x},${y}`,
             content: `Grid position ${x},${y}`,
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           })
         }
@@ -651,7 +651,7 @@ describe('Graph Traversal Algorithms', () => {
           id: nodeId,
           name: `Deep Node ${i}`,
           content: `Deep content ${i}`,
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
         

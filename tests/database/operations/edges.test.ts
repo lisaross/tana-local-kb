@@ -24,13 +24,13 @@ describe('Edge Operations', () => {
 
     // Create test nodes for hierarchy tests
     const testNodes: NodeInsert[] = [
-      { id: 'root-1', name: 'Root Node 1', content: 'Root content', node_type: 'folder', is_system_node: false },
-      { id: 'root-2', name: 'Root Node 2', content: 'Root content', node_type: 'folder', is_system_node: false },
-      { id: 'child-1', name: 'Child Node 1', content: 'Child content', node_type: 'note', is_system_node: false },
-      { id: 'child-2', name: 'Child Node 2', content: 'Child content', node_type: 'note', is_system_node: false },
-      { id: 'child-3', name: 'Child Node 3', content: 'Child content', node_type: 'note', is_system_node: false },
-      { id: 'grandchild-1', name: 'Grandchild Node 1', content: 'Grandchild content', node_type: 'note', is_system_node: false },
-      { id: 'grandchild-2', name: 'Grandchild Node 2', content: 'Grandchild content', node_type: 'note', is_system_node: false }
+      { id: 'root-1', name: 'Root Node 1', content: 'Root content', node_type: 'node', is_system_node: false },
+      { id: 'root-2', name: 'Root Node 2', content: 'Root content', node_type: 'node', is_system_node: false },
+      { id: 'child-1', name: 'Child Node 1', content: 'Child content', node_type: 'node', is_system_node: false },
+      { id: 'child-2', name: 'Child Node 2', content: 'Child content', node_type: 'node', is_system_node: false },
+      { id: 'child-3', name: 'Child Node 3', content: 'Child content', node_type: 'node', is_system_node: false },
+      { id: 'grandchild-1', name: 'Grandchild Node 1', content: 'Grandchild content', node_type: 'node', is_system_node: false },
+      { id: 'grandchild-2', name: 'Grandchild Node 2', content: 'Grandchild content', node_type: 'node', is_system_node: false }
     ]
 
     await nodeOps.createNodes(testNodes)
@@ -469,7 +469,7 @@ describe('Edge Operations', () => {
         id: h.child_id,
         name: `Performance Child ${i}`,
         content: 'Performance test content',
-        node_type: 'note',
+        node_type: 'node',
         is_system_node: false
       }))
       await nodeOps.createNodes(nodes)
@@ -498,7 +498,7 @@ describe('Edge Operations', () => {
           id: nodeId,
           name: `Deep Node ${i}`,
           content: 'Deep hierarchy content',
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
 
@@ -537,7 +537,7 @@ describe('Edge Operations', () => {
           id: rootId,
           name: `Performance Root ${root}`,
           content: 'Performance test content',
-          node_type: 'folder',
+          node_type: 'node',
           is_system_node: false
         })
 
@@ -547,7 +547,7 @@ describe('Edge Operations', () => {
             id: childId,
             name: `Performance Child ${root}-${child}`,
             content: 'Performance test content',
-            node_type: 'note',
+            node_type: 'node',
             is_system_node: false
           })
 
@@ -599,16 +599,17 @@ describe('Edge Operations', () => {
     })
 
     test('should handle concurrent hierarchy modifications', async () => {
-      const promises = []
-
-      // Create multiple edges concurrently
-      for (let i = 0; i < 10; i++) {
-        promises.push(edgeOps.createHierarchyEdge({
-          parent_id: 'root-1',
-          child_id: `concurrent-${i}`,
-          position: i
-        }))
-      }
+      // Create a connection with WAL mode for proper concurrency support
+      const concurrentConnection = await dbUtils.createTestConnection({
+        enableWAL: true,
+        pragmas: { 
+          journal_mode: 'WAL',
+          foreign_keys: 'ON',
+          busy_timeout: '5000'  // 5 second timeout for lock contention
+        }
+      })
+      const concurrentEdgeOps = createEdgeOperations(concurrentConnection)
+      const concurrentNodeOps = createNodeOperations(concurrentConnection)
 
       // Create nodes first
       const nodes: NodeInsert[] = []
@@ -617,13 +618,26 @@ describe('Edge Operations', () => {
           id: `concurrent-${i}`,
           name: `Concurrent Node ${i}`,
           content: 'Concurrent test',
-          node_type: 'note',
+          node_type: 'node',
           is_system_node: false
         })
       }
-      await nodeOps.createNodes(nodes)
+      await concurrentNodeOps.createNodes(nodes)
+
+      const promises = []
+
+      // Create multiple edges concurrently
+      for (let i = 0; i < 10; i++) {
+        promises.push(concurrentEdgeOps.createHierarchyEdge({
+          parent_id: 'root-1',
+          child_id: `concurrent-${i}`,
+          position: i
+        }))
+      }
 
       const results = await Promise.all(promises)
+      await concurrentConnection.close()
+      
       const successfulCreations = results.filter(r => r.success).length
 
       expect(successfulCreations).toBe(10)
