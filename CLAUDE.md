@@ -114,6 +114,25 @@ The simplified import system processes Tana JSON exports:
 
 Run `bun test` for unit/integration tests, `bun test:e2e` for end-to-end tests.
 
+## Code Review & Quality Assurance
+
+### CodeRabbit Review Process
+
+**IMPORTANT**: When working with CodeRabbit feedback, agents must follow the systematic triage process:
+
+1. **Always use the `coderabbit-triage` agent** before marking any work complete
+2. **Check `.claude/coderabbit-triage-checklist.md`** for the complete workflow
+3. **Address ALL critical and important issues** - never ignore CodeRabbit comments
+4. **Use environment-aware performance thresholds** to prevent CI flakiness
+
+**Key Quality Gates:**
+- 🔴 **Critical Issues**: Security, crashes, data corruption (fix immediately)
+- 🟡 **Important Issues**: Error handling, performance, test stability (fix before merge)  
+- 🔵 **Nice-to-Have**: Code organization, optimizations (fix if time permits)
+- ⚪ **Nitpicks**: Style, formatting (address in batches)
+
+CodeRabbit generates comprehensive feedback - the systematic triage process ensures nothing important gets missed.
+
 ## Common Development Patterns
 
 ### Adding New Search Features
