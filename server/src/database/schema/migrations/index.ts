@@ -302,9 +302,10 @@ export const MIGRATIONS: MigrationDefinition[] = [
 
 /**
  * Calculate checksum for migration statements
+ * Includes version number to prevent collision between migrations with identical content
  */
-function calculateChecksum(statements: string[]): string {
-  const content = statements.join('\n')
+function calculateChecksum(statements: string[], version: number): string {
+  const content = `${version}:${statements.join('\n')}`
   return createHash('sha256').update(content).digest('hex')
 }
 
@@ -314,7 +315,7 @@ function calculateChecksum(statements: string[]): string {
 function initializeMigrations(): void {
   for (const migration of MIGRATIONS) {
     if (!migration.checksum) {
-      migration.checksum = calculateChecksum(migration.up)
+      migration.checksum = calculateChecksum(migration.up, migration.version)
     }
   }
 }

@@ -341,5 +341,5 @@ export function getIndexMaintenanceQueries(): string[] {
   )
 }
 
-// Export index categories and combined structures
-export { INDEX_CREATION_ORDER }
+// Export index categories and combined structures (as copies to prevent mutation)
+export const SAFE_INDEX_CREATION_ORDER = [...INDEX_CREATION_ORDER]

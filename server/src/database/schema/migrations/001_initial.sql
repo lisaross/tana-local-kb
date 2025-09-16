@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS nodes (
   node_type TEXT NOT NULL 
     CHECK(node_type IN ('node', 'field', 'reference')),
   
-  is_system_node BOOLEAN NOT NULL DEFAULT FALSE,
+  is_system_node INTEGER NOT NULL DEFAULT 0 CHECK(is_system_node IN (0, 1)),
   
   fields_json TEXT NOT NULL DEFAULT '{}' 
     CHECK(json_valid(fields_json) AND length(fields_json) <= 100000),
