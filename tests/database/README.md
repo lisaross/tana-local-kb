@@ -14,7 +14,7 @@ This test suite ensures the database system meets the following requirements:
 
 ## Test Structure
 
-```
+```text
 tests/database/
 ├── config/
 │   └── connection.test.ts          # Connection management tests
@@ -137,7 +137,7 @@ All tests include real-time memory monitoring to ensure memory constraints are m
 ## Interpreting Results
 
 ### Test Output Format
-```
+```text
 ✅ Node Operations Tests - PASSED (1250ms, 45.2MB peak)
    Coverage: 92.1% functions, 89.4% lines
    Requirements: Memory ✅ Duration ✅ Coverage ✅

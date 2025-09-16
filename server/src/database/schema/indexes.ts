@@ -232,18 +232,6 @@ export const ANALYSIS_INDEXES = {
                       WHERE (reference_count + child_count) > 10`,
 } as const
 
-// Combine all index categories
-const ALL_INDEXES = {
-  ...NODE_INDEXES,
-  ...HIERARCHY_INDEXES,
-  ...REFERENCE_INDEXES,
-  ...STATS_INDEXES,
-  ...IMPORT_INDEXES,
-  ...VERSION_INDEXES,
-  ...GRAPH_INDEXES,
-  ...ANALYSIS_INDEXES,
-} as const
-
 // Essential indexes for basic functionality (always created)
 const ESSENTIAL_INDEXES = [
   ...Object.values(NODE_INDEXES),
