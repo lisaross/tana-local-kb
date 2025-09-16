@@ -118,20 +118,23 @@ Run `bun test` for unit/integration tests, `bun test:e2e` for end-to-end tests.
 
 ### CodeRabbit Review Process
 
-**IMPORTANT**: When working with CodeRabbit feedback, agents must follow the systematic triage process:
+**MANDATORY WORKFLOW** - Follow this process to prevent missing critical issues:
 
-1. **Always use the `coderabbit-triage` agent** before marking any work complete
-2. **Check `.claude/coderabbit-triage-checklist.md`** for the complete workflow
-3. **Address ALL critical and important issues** - never ignore CodeRabbit comments
-4. **Use environment-aware performance thresholds** to prevent CI flakiness
+1. **Initial Triage**: Use `coderabbit-triage` agent to get comprehensive issue analysis
+2. **Fix by Priority**: Address Critical → Important → Nice-to-have → Nitpicks
+3. **Commit Systematically**: Document each fix with descriptive commit messages
+4. **🚨 MANDATORY RE-AUDIT**: Re-run `coderabbit-triage` agent to verify ALL issues resolved  
+5. **Evidence-Based Completion**: Only declare complete when triage confirms zero critical issues
 
-**Key Quality Gates:**
-- 🔴 **Critical Issues**: Security, crashes, data corruption (fix immediately)
-- 🟡 **Important Issues**: Error handling, performance, test stability (fix before merge)  
+**CRITICAL RULE**: Never assume you've fixed everything without running the triage agent again!
+
+**Quality Gate Categories:**
+- 🔴 **Critical**: Security, data corruption, crashes (MUST fix immediately)
+- 🟡 **Important**: Performance, stability, compatibility (fix before merge)  
 - 🔵 **Nice-to-Have**: Code organization, optimizations (fix if time permits)
-- ⚪ **Nitpicks**: Style, formatting (address in batches)
+- ⚪ **Nitpicks**: Style, formatting (batch fixes)
 
-CodeRabbit generates comprehensive feedback - the systematic triage process ensures nothing important gets missed.
+**Failure Prevention**: See `.claude/coderabbit-triage-checklist.md` for complete workflow including real-world failure examples and prevention strategies.
 
 ## Common Development Patterns
 
